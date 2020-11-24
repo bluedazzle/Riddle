@@ -102,7 +102,7 @@ class Command(BaseCommand):
         questions_list.sort(key=lambda x: (x[1]))
 
         for num in range(len(questions_list)):
-            obj_question = model_question(title=u'猜猜这是谁？', order_id=questions_list[num][0], question_type=1,
+            obj_question = model_question(title=u'猜猜这是谁？', order_id=num+1, question_type=1,
                                           difficult=1,
                                           right_answer_id=1, right_answer=questions_list[num][3],
                                           wrong_answer_id=2, wrong_answer=questions_list[num][4],
