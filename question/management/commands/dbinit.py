@@ -70,6 +70,9 @@ class Command(BaseCommand):
                     name_dic[infos[u'正确答案'][line]]) + '.jpg'
                 encode_pic = parse.quote(pic)
                 url = prefix + encode_pic
+                try_total = try_total + 1
+                if try_total >= 12:
+                    break
                 try:
                     resp = requests.get(str(url), timeout=4)
                 except:
@@ -87,9 +90,6 @@ class Command(BaseCommand):
                         name_dic[infos[u'正确答案'][line]] = 0
                     continue
                 try_num = 0
-                try_total = try_total + 1
-                if try_total >= 12:
-                    break
                 name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
                 pics_num = pics_num + 1
                 pics_list.append(url)
