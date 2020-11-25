@@ -112,4 +112,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/questions.xlsx', 180)
+        self.question_init(u'question/management/commands/auto_questions.xlsx', 900)

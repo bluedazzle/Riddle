@@ -53,7 +53,6 @@ def question_init(execl, questions=0):
             pic = infos[u'正确答案'][line] + '/' + infos[u'正确答案'][line] + '-' + str(name_dic[infos[u'正确答案'][line]]) + '.jpg'
             encode_pic = parse.quote(pic)
             url = prefix + encode_pic
-            print(url)
             try_total = try_total + 1
             if try_total == 20:
                 break
@@ -127,5 +126,5 @@ def table_init(execl, people=0):
 
 
 if __name__ == "__main__":
-    question_init(u'questions.xlsx', 10)
+    question_init(u'auto_questions.xlsx', 10)
     # table_init(u'pics.xlsx', 100)
