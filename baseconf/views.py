@@ -35,7 +35,8 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         conf = get_global_conf()
-        setattr(conf, 'background_musics', self.format_musics(conf.background_musics))
+        #setattr(conf, 'background_musics', self.format_musics(conf.background_musics))
+        conf['background_musics'] = self.format_musics(conf['background_musics'])
         return self.render_to_response(conf)
 
 
