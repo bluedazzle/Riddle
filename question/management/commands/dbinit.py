@@ -71,7 +71,7 @@ class Command(BaseCommand):
                 encode_pic = parse.quote(pic)
                 url = prefix + encode_pic
                 try_total = try_total + 1
-                if try_total >= 12:
+                if try_total >= 20:
                     break
                 try:
                     resp = requests.get(str(url), timeout=4)

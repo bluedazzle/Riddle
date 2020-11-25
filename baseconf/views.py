@@ -3,6 +3,11 @@ from __future__ import unicode_literals
 
 # Create your views here.
 
+import json
+
+# Create your views here.
+import logging
+
 from django.views.generic import DetailView, ListView
 
 from core.Mixin.ABTestMixin import ABTestMixin
@@ -19,8 +24,18 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
 
     exclude_attr = ['allow_cash_right_number']
 
+    @staticmethod
+    def format_musics(musics):
+        res_list = []
+        try:
+            res_list = json.loads(musics)
+        except Exception as e:
+            logging.exception(e)
+        return res_list
+
     def get(self, request, *args, **kwargs):
         conf = get_global_conf()
+        setattr(conf, 'background_musics', self.format_musics(conf.background_musics))
         return self.render_to_response(conf)
 
 
