@@ -150,10 +150,9 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response()
 
         rand_num = random.random() * (high_range - low_range) + low_range
+        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num, const_num=const_num)
         if version >= 20112400 and version <= 20112799:
             cash = self.new_version_handler()
-        else:
-            cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num, const_num=const_num)
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
 
         video = False
