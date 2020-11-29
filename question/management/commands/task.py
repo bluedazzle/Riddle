@@ -126,5 +126,5 @@ def table_init(execl, people=0):
 
 
 if __name__ == "__main__":
-    question_init(u'auto_questions.xlsx', 10)
-    # table_init(u'pics.xlsx', 100)
+    # question_init(u'auto_questions.xlsx', 10)
+    table_init(u'pics.xlsx')

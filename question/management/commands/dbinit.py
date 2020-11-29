@@ -95,6 +95,7 @@ class Command(BaseCommand):
                 pics_list.append(url)
             if pics_num < 3:
                 continue
+            print("line number: " + str(line))
             print(pics_list)
             questions_list.append((int(infos[u'id'][line]), int(infos[u'题目顺序'][line]), int(infos[u'题目类型'][line]),
                                    infos[u'正确答案'][line], infos[u'错误答案'][line], json.dumps(pics_list)))
@@ -112,4 +113,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/auto_questions.xlsx', 900)
+        self.question_init(u'question/management/commands/auto_questions.xlsx')
