@@ -29,7 +29,8 @@ class Question(BaseModel):
     right_answer = models.CharField(max_length=100)
     wrong_answer_id = models.IntegerField()
     wrong_answer = models.CharField(max_length=100)
-    resource_url = models.CharField(max_length=256, default='[]')
+    resource_url = models.CharField(max_length=256, default='')
+    resources = models.TextField(max_length=1024, default='[]')
 
     def __unicode__(self):
         return '排序:{0}-{1}:{2}'.format(self.order_id, self.title, self.right_answer)
