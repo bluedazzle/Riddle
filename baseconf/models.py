@@ -32,6 +32,7 @@ class GlobalConf(ExportModelOperationsMixin("GlobalConf"), BaseModel):
     allow_cash_count = models.IntegerField(default=DEFAULT_ALLOW_CASH_COUNT, verbose_name='提现金额门槛(单位: 分)')
     allow_cash_right_number = models.IntegerField(default=DEFAULT_ALLOW_CASH_RIGHT_COUNT, verbose_name='提现题目门槛')
     perfect_level = models.IntegerField(default=29897)
+    background_musics = models.TextField(max_length=2000, default='')
 
     def __unicode__(self):
         return '全局配置'

@@ -70,6 +70,9 @@ class Command(BaseCommand):
                     name_dic[infos[u'正确答案'][line]]) + '.jpg'
                 encode_pic = parse.quote(pic)
                 url = prefix + encode_pic
+                try_total = try_total + 1
+                if try_total >= 20:
+                    break
                 try:
                     resp = requests.get(str(url), timeout=4)
                 except:
@@ -87,14 +90,12 @@ class Command(BaseCommand):
                         name_dic[infos[u'正确答案'][line]] = 0
                     continue
                 try_num = 0
-                try_total = try_total + 1
-                if try_total >= 12:
-                    break
                 name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
                 pics_num = pics_num + 1
                 pics_list.append(url)
             if pics_num < 3:
                 continue
+            print("line number: " + str(line))
             print(pics_list)
             questions_list.append((int(infos[u'id'][line]), int(infos[u'题目顺序'][line]), int(infos[u'题目类型'][line]),
                                    infos[u'正确答案'][line], infos[u'错误答案'][line], json.dumps(pics_list)))
@@ -102,7 +103,7 @@ class Command(BaseCommand):
         questions_list.sort(key=lambda x: (x[1]))
 
         for num in range(len(questions_list)):
-            obj_question = model_question(title=u'猜猜这是谁？', order_id=questions_list[num][0], question_type=1,
+            obj_question = model_question(title=u'猜猜这是谁？', order_id=num+1, question_type=1,
                                           difficult=1,
                                           right_answer_id=1, right_answer=questions_list[num][3],
                                           wrong_answer_id=2, wrong_answer=questions_list[num][4],
@@ -112,4 +113,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/questions.xlsx', 180)
+        self.question_init(u'question/management/commands/auto_questions.xlsx')

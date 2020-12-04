@@ -80,18 +80,15 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
                 17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1)) + kwargs.get('const_num')
 
         return cash
-
-
+      
     def new_version_handler(self):
        cash_list = [1888, 243, 221, 198, 212, 176, 142, 158, 129, 105]
-
        if self.user.current_level <= 10:
            cash = cash_list[self.user.current_level - 1]
        else:
            rand_num = random.random() * (120 - 20) + 20
            cash = 50 - (math.floor((self.user.current_level - 10) / 10) * 1) + rand_num
            cash = int(max(cash, 1))
-
        return cash
 
     def daily_rewards_handler(self):
@@ -135,10 +132,9 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response()
 
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num, const_num=const_num)
         if version >= 20112400 and version <= 20113099:
            cash = self.new_version_handler()
-
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
 
         video = False

@@ -5,6 +5,7 @@ import pandas as pd
 from urllib import parse
 import pypinyin
 import requests
+import random
 
 prefix = 'http://cai-ta.ecdn.plutus-cat.com/assets/'
 
@@ -52,6 +53,9 @@ def question_init(execl, questions=0):
             pic = infos[u'正确答案'][line] + '/' + infos[u'正确答案'][line] + '-' + str(name_dic[infos[u'正确答案'][line]]) + '.jpg'
             encode_pic = parse.quote(pic)
             url = prefix + encode_pic
+            try_total = try_total + 1
+            if try_total == 20:
+                break
             try:
                 resp = requests.get(str(url), timeout=4)
             except :
@@ -69,9 +73,6 @@ def question_init(execl, questions=0):
                     name_dic[infos[u'正确答案'][line]] = 0
                 continue
             try_num = 0
-            try_total = try_total + 1
-            if try_total == 12:
-                break
             name_dic[infos[u'正确答案'][line]] = name_dic[infos[u'正确答案'][line]] + 1
             pics_num = pics_num + 1
             pics_list.append(url)
@@ -85,18 +86,45 @@ def question_init(execl, questions=0):
     print("total: " + str(len(questions_list)))
     print(questions_list)
 
+def table_init(execl, people=0):
+    df = pd.read_excel(execl, sheet_name=u'people', encoding='utf-8')
+    infos = df.ix[:, [u'名称', u'数量', u'国籍']]
+    people_map = {u'欧美': u'日韩', u'日韩': u'华人', u'华人': u'欧美'}
+    people_list = {}
+    question_list = []
+    if people == 0:
+        lines = len(infos[u'名称'])
+    else:
+        lines = people
+    for line in range(lines):
+        if not people_list.get(infos[u'国籍'][line]):
+            people_list[infos[u'国籍'][line]] = []
+        people_list[infos[u'国籍'][line]].append(infos[u'名称'][line])
 
+    for line in range(lines):
+        question_num = round(int(infos[u'数量'][line]) / 3)
+        for num in range(question_num):
+            wrong_answer = random.sample(people_list[people_map[infos[u'国籍'][line]]], 1)[0]
+            tag = ''.join(
+                random.sample('1234567890ZYXWVUTSRQPONMLKJIHGFEDCBAZYXWVUTSRQPONMLKJIHGFEDCBA', 8)).replace(" ", "")
+            question_list.append((tag, infos[u'名称'][line], wrong_answer, infos[u'国籍'][line]))
 
+    question_list.sort(key=lambda x: (x[0]))
+    print(question_list)
+
+    table = {u'题目顺序':[], u'id':[], u'题目类型':[], u'正确答案':[], u'错误答案':[], u'国籍':[]}
+    for num in range(len(question_list)):
+        table[u'题目顺序'].append(num+1)
+        table[u'id'].append(num+1)
+        table[u'题目类型'].append(1)
+        table[u'正确答案'].append(question_list[num][1])
+        table[u'错误答案'].append(question_list[num][2])
+        table[u'国籍'].append(question_list[num][3])
+
+    table_excel = pd.DataFrame(table)
+    table_excel.to_excel('auto_questions.xlsx', sheet_name='questions')
 
 
 if __name__ == "__main__":
-    question_init(u'questions.xlsx', 100)
-
-    # pic = '刘亦菲/刘亦菲－1' + '.jpg'
-    # encode_pic = parse.quote(pic)
-    # url = prefix + encode_pic
-    #
-    # print(url)
-    # resp = requests.get(url, timeout=4)
-    # if resp.status_code != 200:
-    #     print("success!")
+    # question_init(u'auto_questions.xlsx', 10)
+    table_init(u'pics.xlsx')
