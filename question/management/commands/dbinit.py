@@ -67,7 +67,7 @@ class Command(BaseCommand):
 
             while pics_num < 3:
                 pic = infos[u'正确答案'][line] + '/' + infos[u'正确答案'][line] + '-' + str(
-                    name_dic[infos[u'正确答案'][line]]) + '.jpg'
+                    name_dic[infos[u'正确答案'][line]]) + '.webp'
                 encode_pic = parse.quote(pic)
                 url = prefix + encode_pic
                 try_total = try_total + 1
@@ -113,4 +113,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/auto_questions.xlsx')
+        self.question_init(u'question/management/commands/auto_questions1.xlsx')
