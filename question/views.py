@@ -35,6 +35,23 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     pk_url_kwarg = 'qid'
     datetime_type = 'timestamp'
 
+    def get_preload_data(self):
+        preload_level = self.user.current_level % DEFAULT_QUESTION_NUMBER + 1
+        objs = self.model.objects.filter(order_id=preload_level).all()
+        if not objs.exists():
+            return None
+        obj = objs[0]
+        return obj
+
+    @staticmethod
+    def format_resources(resources):
+        res_list = []
+        try:
+            res_list = json.loads(resources)
+        except Exception as e:
+            logging.exception(e)
+        return res_list
+
     def get_object(self, queryset=None):
         obj = None
         if self.kwargs.get(self.pk_url_kwarg, None):
@@ -52,7 +69,18 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         else:
             answer_list = [{'answer_id': obj.right_answer_id, 'answer': obj.right_answer},
                            {'answer_id': obj.wrong_answer_id, 'answer': obj.wrong_answer}]
+        preload_data = {}
+        setattr(obj, 'resources', self.format_resources(obj.resources))
         setattr(obj, 'answer_list', answer_list)
+        setattr(obj, 'preload', preload_data)
+        preload = int(self.request.GET.get('preload', 0))
+        if not preload:
+            return obj
+        pre_obj = self.get_preload_data()
+        if pre_obj:
+            preload_data['resources'] = self.format_resources(pre_obj.resources)
+            preload_data['resource_type'] = pre_obj.resource_type
+            setattr(obj, 'preload', preload_data)
         return obj
 
 
@@ -72,7 +100,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     def handler_default(self, *args, **kwargs):
         cash = int(
             max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
-                20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
+                20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1)) + + kwargs.get('const_num')
         return cash
 
     def handler_b(self, *args, **kwargs):
