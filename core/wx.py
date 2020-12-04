@@ -8,8 +8,8 @@ import requests
 # from django.utils import timezone
 from core.pyutil.net.get_local_ip import get_local_ip
 
-APP_KEY = 'wx0a70602b8b19b1e5'
-APP_SECRET = '77b167cb1b9f4cc491010207d79b4f61'
+APP_KEY = 'wxd6496a66ce3931c6'
+APP_SECRET = '01d1b68bb29d0630c9014aeab1b00611'
 WX_MCH_KEY = 'atpexFTVI97mPZfhwwlLdGdvuizulgyq'
 WX_MCH_ID = '1602484372'
 
