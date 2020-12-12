@@ -202,9 +202,9 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         reward = False
         reward_url = ''
         if self.user.reward_count == reward_count:
-            obj = PageConf.objects.all()[0]
+            conf = PageConf.objects.all()[0]
             reward = True
-            reward_url = obj.rewards_url
+            reward_url = conf.rewards_url
             self.user.reward_count = 0
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > reward_count:
