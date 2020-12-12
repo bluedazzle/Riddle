@@ -35,6 +35,8 @@ ALLOWED_HOSTS = [
     '192.168.1.98',
     'n.rapo.cc',
     '202.112.237.65',
+    '121.4.103.23',
+    'app.cai-ta.plutus-cat.com',
     'app.guess-song.plutus-cat.com',
     'tapp.guess-song.plutus-cat.com',
 ]
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
     'baseconf',
     'event',
     'corsheaders',
+    'task',
    # 'django_prometheus',
 ]
 
