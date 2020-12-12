@@ -182,22 +182,22 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            client_redis_riddle.set(str(self.user.id) + 'continu', self.user.continu_count)
-            self.user.continu_count = 0
+            client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
+            self.user.continue_count = 0
             if self.user.current_level == DEFAULT_QUESTION_NUMBER:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video,
-                 'right_answer': obj.right_answer, 'right_answer_id': obj.right_answer_id, 'continu': 0})
+                 'right_answer': obj.right_answer, 'right_answer_id': obj.right_answer_id, 'continue': 0})
 
         if self.user.current_step == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
         self.user.right_count += 1
         self.user.reward_count += 1
-        self.user.continu_count = min(199, self.user.continu_count + 1)
+        self.user.continue_count = min(199, self.user.continue_count + 1)
         self.user.cash += cash
         reward = False
         reward_url = ''
@@ -217,7 +217,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.add_event()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video,
-             'right_answer': obj.right_answer, 'right_answer_id': obj.right_answer_id, 'continu': self.user.continu_count})
+             'right_answer': obj.right_answer, 'right_answer_id': obj.right_answer_id,
+             'continue': self.user.continue_count})
 
 
 class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -239,12 +240,12 @@ class StimulateView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
                 except Exception as e:
                     logging.exception(e)
         if resurge == "1":
-            continu = client_redis_riddle.get(str(self.user.id) + 'continu')
-            if continu:
+            continue_value = client_redis_riddle.get(str(self.user.id) + 'continue_value')
+            if continue_value:
                 try:
-                    continu = int(continu)
-                    self.user.continu_count = continu
-                    client_redis_riddle.delete(str(self.user.id) + 'contins')
+                    continue_value = int(continue_value)
+                    self.user.continue_count = continue_value
+                    client_redis_riddle.delete(str(self.user.id) + 'continue_value')
                 except Exception as e:
                     logging.exception(e)
         self.user.save()
