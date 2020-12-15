@@ -209,7 +209,7 @@ fabfile.py
 *.db
 
 # docker compose
-#docker-compose.yml
+docker-compose.yml
 
 # local conf
 conf/deploy_dev.conf

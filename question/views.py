@@ -25,6 +25,7 @@ from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
 from event.models import ObjectEvent
 from question.models import Question
+from question.models import Girl
 from account.models import User
 from core.Mixin.ABTestMixin import ABTestMixin
 
@@ -293,3 +294,32 @@ class WatchVideoView(StatusWrapMixin, JsonResponseMixin, DetailView):
             self.user.songs_count = 0
         self.user.save()
         return JsonResponse({'isValid': True})
+
+class FetchPicturesView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = Girl
+
+    @staticmethod
+    def format_list(json_format):
+        ret_list = []
+        try:
+            ret_list = json.loads(json_format)
+        except Exception as e:
+            logging.exception(e)
+        return ret_list
+
+    def get(self, request, *args, **kwargs):
+        obj = None
+        name = request.GET.get('name', '')
+        index = int(request.GET.get('index', '0'))
+        objs = self.model.objects.filter(name=name).all()
+        if not objs.exists():
+            return self.render_to_response()
+        obj = objs[0]
+        pics_list = self.format_list(obj.resources_url)
+        if index >= len(pics_list):
+            return self.render_to_response()
+        if index + 10 > len(pics_list):
+            pics_list = pics_list[index:len(pics_list)]
+        else:
+            pics_list = pics_list[index:index+10]
+        return self.render_to_response({'resources_url': pics_list})

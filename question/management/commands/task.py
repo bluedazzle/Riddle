@@ -16,16 +16,28 @@ def pingyin(word):
     return s
 
 
-def song_init(execl, songs=0):
-    df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-    infos = df.ix[:, [u'歌手名', u'歌曲名']]
-    if songs == 0:
-        lines = len(infos[u'歌手名'])
-    else:
-        lines = songs
-    for line in range(lines):
-        url = prefix + pingyin(infos[u'歌手名'][line]) + '_' + pingyin(infos[u'歌曲名'][line]) + '.m4a'
-        print(url)
+def girl_init_from_txt(txt, people=0):
+    infos = {u'名称': [], u'数量': [], u'国籍': []}
+    with open(txt, "r") as f:
+        txt = f.readlines()
+        for line in range(len(txt)):
+            if line >= 1 and line <= 85:
+                name, num = txt[line].replace("\n", "").split("  ")
+                # print(name, num)
+                infos[u'名称'].append(name)
+                infos[u'数量'].append(num)
+                infos[u'国籍'].append(u'欧美')
+            elif line >= 86:
+                name, num, country = txt[line].replace("\n", "").replace("\t", "  ").split("  ")
+                # print(name, num, country)
+                infos[u'名称'].append(name)
+                infos[u'数量'].append(num)
+                infos[u'国籍'].append(country)
+
+    print(infos)
+
+    table_excel = pd.DataFrame(infos)
+    table_excel.to_excel('auto_girls.xlsx', sheet_name='girls')
 
 
 
@@ -178,10 +190,11 @@ def table_init_from_txt(txt, people=0):
         table[u'国籍'].append(question_list[num][3])
 
     table_excel = pd.DataFrame(table)
-    table_excel.to_excel('auto_questions1.xlsx', sheet_name='questions')
+    table_excel.to_excel('auto_questions.xlsx', sheet_name='questions')
 
 
 if __name__ == "__main__":
-    question_init(u'auto_questions1.xlsx', 10)
+    # question_init(u'auto_questions.xlsx', 10)
     # table_init(u'pics.xlsx')
     # table_init_from_txt(u'summary.txt')
+    girl_init_from_txt(u'summary.txt')
