@@ -95,4 +95,4 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        self.question_init(u'question/management/commands/auto_questions.xlsx', 10)
+        self.question_init(u'question/management/commands/auto_questions.xlsx')
