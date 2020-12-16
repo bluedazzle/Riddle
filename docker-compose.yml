@@ -6,10 +6,10 @@ services:
       - ./:/site:rw
       - ~/repos/cert:/cert/
     depends_on:
-      - postgres_girls
-      - redis_girls
+      - postgres
+      - redis
 
-  nginx_girls:
+  nginx:
     image: nginx:latest
     restart: always
     ports:
@@ -20,7 +20,7 @@ services:
     depends_on:
       - app_girls
 
-  postgres_girls:
+  postgres:
     image: postgres:latest
     restart: always
     ports:
@@ -31,6 +31,6 @@ services:
       POSTGRES_DB: ${RIDDLE_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
 
-  redis_girls:
+  redis:
     restart: always
     image: redis
