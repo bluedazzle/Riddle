@@ -13,7 +13,7 @@ from operator import itemgetter
 
 from django.core.management.base import BaseCommand
 
-from question.models import Song
+from question.models import Girl
 from question.models import Question
 
 prefix = 'http://cai-ta.ecdn.plutus-cat.com/assets/'
@@ -25,23 +25,6 @@ class Command(BaseCommand):
         for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
             s += ''.join(i)
         return s
-
-    def song_init(self, execl, songs=0):
-        model = Song
-        df = pd.read_excel(execl, sheet_name=u'songs', encoding='utf-8')
-        infos = df.ix[:, [u'歌手名', u'正确歌曲名']]
-        if songs == 0:
-            lines = len(infos[u'歌手名'])
-        else:
-            lines = songs
-        for line in range(lines):
-            url = prefix + self.pingyin(infos[u'歌手名'][line]) + '_' + self.pingyin(infos[u'正确歌曲名'][line]) + '.m4a'
-            print(url)
-            objs = model.objects.filter(resource_url=url).all()
-            if objs.exists():
-                continue
-            obj = model(singer=infos[u'歌手名'][line], name=infos[u'正确歌曲名'][line], resource_url=url)
-            obj.save()
 
     def question_init(self, execl, questions=0):
         model_question = Question
@@ -112,5 +95,4 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/auto_questions1.xlsx')
+        self.question_init(u'question/management/commands/auto_questions.xlsx')
