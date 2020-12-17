@@ -345,8 +345,8 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
                 amount = random.randint(1, 500)
                 rp = self.create_red_packet(amount, PACKET_TYPE_CASH, False)
             else:
-                total_poss = 5 + len(with_draws) * 3
-                cash_range = 5.0 / total_poss * 100
+                total_poss = 1 + len(with_draws) * 10
+                cash_range = 1.0 / total_poss * 100
                 lucky_number = random.randint(1, 100)
                 if lucky_number <= cash_range:
                     amount = random.randint(1, 500)
