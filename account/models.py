@@ -55,6 +55,8 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
     check_point_draw = models.BooleanField(default=False)
+    lucky_draw_total_count = models.IntegerField(default=0)
+    lucky_draw_ava_withdraw = models.IntegerField(default=0) # 抽奖每7次提现0.3
 
     ab_test_id = models.CharField(max_length=100, default='')
     valid_register = models.BooleanField(default=False)
