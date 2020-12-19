@@ -69,7 +69,8 @@ class RewardListView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin
     datetime_type = 'timestamp'
 
     def get_list_by_user(self):
-        self.queryset = self.model.objects.filter(belong=self.user, reward_type=PACKET_TYPE_WITHDRAW)
+        self.queryset = self.model.objects.filter(belong=self.user, reward_type=PACKET_TYPE_WITHDRAW,
+                                                  status=STATUS_UNUSE)
 
     def get_queryset(self):
         self.get_list_by_user()
@@ -95,7 +96,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 
     def valid_withdraw_chance(self, cash):
         now_time = timezone.localtime()
-        queryset = RedPacket.objects.filter(belong=self.user, amount=cash, status=STATUS_UNUSE, reward_type=PACKET_TYPE_WITHDRAW,
+        queryset = RedPacket.objects.filter(belong=self.user, amount=cash, status=STATUS_UNUSE,
+                                            reward_type=PACKET_TYPE_WITHDRAW,
                                             expire__gte=now_time).all()
         if queryset.exists():
             self.withdraw_chance = queryset[0]
@@ -294,7 +296,7 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
             raise ValidationError('请绑定微信后提现')
         if cash != 100 and cash != 50:
             raise ValidationError('非法的提现金额')
-        if self.user.cash < obj.withdraw_first_threshold:
+        if self.user.cash < obj.new_withdraw_threshold:
             raise ValidationError('提现可用金额不足')
 
     def create_cash_record(self, amount):
