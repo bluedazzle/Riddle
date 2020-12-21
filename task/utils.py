@@ -86,6 +86,9 @@ def send_reward(user: User, amount: int, reward_type: str):
 
 def daily_task_attr_reset(user: User):
     now_time = timezone.localtime()
+    if not user.new_withdraw and user.current_level <= 5:
+        user.daily_reward_stage = 5
+        user.check_point_draw = True
     if user.daily_reward_modify.astimezone().day != now_time.day:
         user.daily_reward_expire = None
         user.daily_reward_draw = False

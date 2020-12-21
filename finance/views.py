@@ -82,6 +82,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     http_method_names = ['post']
     conf = {}
     withdraw_chance = None
+    is_new_withdraw = False
 
     def simple_safe(self):
         if not self.user.city and not self.user.province and self.user.wx_open_id:
@@ -118,6 +119,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 raise ValidationError('请稍后再试')
             if not self.user.new_withdraw:
                 self.user.new_withdraw = True
+                self.is_new_withdraw = True
                 return True
         if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold and cash != obj.new_withdraw_threshold:
             raise ValidationError('非法的提现金额')
@@ -165,7 +167,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 cash_record.reason = fail_message
                 cash_record.status = STATUS_FAIL
                 obj = WithdrawConf.objects.all()[0]
-                if cash == obj.new_withdraw_threshold:
+                if cash == obj.new_withdraw_threshold and self.is_new_withdraw:
                     self.user.new_withdraw = False
         else:
             self.withdraw_chance.status = STATUS_USED
