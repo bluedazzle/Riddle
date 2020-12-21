@@ -161,7 +161,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 self.user.cash -= cash
                 cash_record.reason = '成功'
                 cash_record.status = STATUS_FINISH
-                self.withdraw_chance.status = STATUS_USED
+                if self.withdraw_chance:
+                    self.withdraw_chance.status = STATUS_USED
             else:
                 fail_message = resp.get('err_code_des', 'default_error')
                 cash_record.reason = fail_message
@@ -170,11 +171,13 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                 if cash == obj.new_withdraw_threshold and self.is_new_withdraw:
                     self.user.new_withdraw = False
         else:
-            self.withdraw_chance.status = STATUS_USED
+            if self.withdraw_chance:
+                self.withdraw_chance.status = STATUS_USED
         cash_record.save()
         update_task_attr(self.user, 'daily_withdraw')
         self.user.save()
-        self.withdraw_chance.save()
+        if self.withdraw_chance:
+            self.withdraw_chance.save()
         return self.render_to_response(dict())
 
 
