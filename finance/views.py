@@ -107,7 +107,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
 
     def valid_withdraw(self, cash):
         self.conf = get_global_conf()
-        if cash < self.user.cash:
+        if self.user.cash < cash:
             raise ValidationError("提现金额不足")
         if not self.user.wx_open_id:
             raise ValidationError('请绑定微信后提现')
