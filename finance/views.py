@@ -120,6 +120,7 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
             if not self.user.new_withdraw:
                 self.user.new_withdraw = True
                 self.is_new_withdraw = True
+                self.valid_withdraw_chance(cash)
                 return True
         if cash != obj.withdraw_first_threshold and cash != obj.withdraw_second_threshold and cash != obj.withdraw_third_threshold and cash != obj.new_withdraw_threshold:
             raise ValidationError('非法的提现金额')
