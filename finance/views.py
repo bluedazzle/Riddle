@@ -421,31 +421,11 @@ class LuckyDrawView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseM
         self.user.save()
         return rp
 
-    def get_reward(self):
-        rp = None
-        amount = 0
-        if self.user.check_point_draw:
-            self.user.check_point_draw = False
-            amount = 30
-            # self.create_cash_record(amount)
-            rp = self.create_red_packet(amount, PACKET_TYPE_WITHDRAW, STATUS_UNUSE)
-        else:
-            rp = self.get_possible_reward()
-        self.user.cash += amount
-        self.user.daily_reward_draw = False
-        self.user.lucky_draw_total_count += 1
-        self.user.lucky_draw_ava_withdraw += 1
-        if self.user.lucky_draw_ava_withdraw == 7:
-            self.user.check_point_draw = True
-        self.user.save()
-        return rp
-
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
         if not self.user.daily_reward_draw:
             self.update_status(StatusCode.ERROR_REWARD_DENIED)
             return self.render_to_response()
         update_task_attr(self.user, 'daily_lucky_draw')
-        self.ab_test_handle('')
-        rp = self.get_reward()
+        rp = self.ab_test_handle('2003')
         return self.render_to_response({'reward': rp})
