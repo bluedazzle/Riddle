@@ -17,6 +17,7 @@ from django.utils import timezone
 
 from account.models import User
 from baseconf.models import WithdrawConf
+from core.Mixin.ABTestMixin import ABTestMixin
 from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
@@ -280,7 +281,7 @@ class RewardView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView
         return self.render_to_response({'reward_list': reward_list})
 
 
-class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateView):
+class LuckyDrawView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixin, CreateView):
     model = RedPacket
     http_method_names = ['post']
     conf = {}
@@ -379,6 +380,47 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
         rp = self.create_red_packet(with_draws[-1][0], PACKET_TYPE_WITHDRAW, STATUS_UNUSE)
         return rp
 
+    def handler_default(self, *args, **kwargs):
+        rp = None
+        amount = 0
+        if self.user.check_point_draw:
+            self.user.check_point_draw = False
+            amount = 30
+            # self.create_cash_record(amount)
+            rp = self.create_red_packet(amount, PACKET_TYPE_WITHDRAW, STATUS_UNUSE)
+        else:
+            rp = self.get_possible_reward()
+        self.user.cash += amount
+        self.user.daily_reward_draw = False
+        self.user.lucky_draw_total_count += 1
+        self.user.lucky_draw_ava_withdraw += 1
+        if self.user.lucky_draw_ava_withdraw == 7:
+            self.user.check_point_draw = True
+        self.user.save()
+        return rp
+
+    def handler_b(self, *args, **kwargs):
+        rp = None
+        amount = 0
+        if self.user.daily_reward_count == 20 and self.user.right_count == 20:
+            amount = 30
+            rp = self.create_red_packet(amount, PACKET_TYPE_WITHDRAW, STATUS_UNUSE)
+        elif self.user.check_point_draw:
+            self.user.check_point_draw = False
+            amount = 30
+            # self.create_cash_record(amount)
+            rp = self.create_red_packet(amount, PACKET_TYPE_WITHDRAW, STATUS_UNUSE)
+        else:
+            rp = self.get_possible_reward()
+        self.user.cash += amount
+        self.user.daily_reward_draw = False
+        self.user.lucky_draw_total_count += 1
+        self.user.lucky_draw_ava_withdraw += 1
+        if self.user.lucky_draw_ava_withdraw == 7:
+            self.user.check_point_draw = True
+        self.user.save()
+        return rp
+
     def get_reward(self):
         rp = None
         amount = 0
@@ -404,5 +446,6 @@ class LuckyDrawView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, CreateV
             self.update_status(StatusCode.ERROR_REWARD_DENIED)
             return self.render_to_response()
         update_task_attr(self.user, 'daily_lucky_draw')
+        self.ab_test_handle('')
         rp = self.get_reward()
         return self.render_to_response({'reward': rp})
