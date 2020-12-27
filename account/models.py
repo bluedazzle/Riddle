@@ -33,6 +33,8 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     province = models.CharField(max_length=30, default='', null=True, blank=True)
     city = models.CharField(max_length=30, default='', null=True, blank=True, verbose_name='所在城市')
     sex = models.IntegerField(default=3)
+    channel = models.CharField(max_length=50, null=True, blank=True, verbose_name='注册渠道')
+    version = models.CharField(max_length=50, null=True, blank=True, verbose_name='注册版本')
     coin = models.IntegerField(default=0)
     cash = models.IntegerField(default=0, verbose_name='现金持有(分)')
     current_level = models.IntegerField(default=1, verbose_name='答题进度')
@@ -60,10 +62,12 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     login_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请登录红包')
     songs_bonus = models.BooleanField(default=False, verbose_name='是否领取邀请答题红包')
     check_point_draw = models.BooleanField(default=False)
+    lucky_draw_total_count = models.IntegerField(default=0)
+    lucky_draw_ava_withdraw = models.IntegerField(default=0) # 抽奖每7次提现0.3
 
     ab_test_id = models.CharField(max_length=100, default='')
     valid_register = models.BooleanField(default=False)
-    daily_reward_stage = models.IntegerField(default=20)  # 日常任务阶段 20/40/60/80
+    daily_reward_stage = models.IntegerField(default=5)  # 日常任务阶段 20/40/60/80
     daily_reward_draw = models.BooleanField(default=False)  # 是否可以抽取提现机会
     daily_reward_count = models.IntegerField(default=0)  # 当前任务进度
     daily_reward_expire = models.DateTimeField(null=True, blank=True)  # 过期时间

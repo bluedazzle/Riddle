@@ -97,13 +97,15 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
     def daily_rewards_handler(self):
         now_time = timezone.localtime()
-        self.user = daily_task_attr_reset(self.user)
         self.user.daily_reward_count += 1
         self.user.daily_right_count += 1
         if self.user.daily_reward_count == self.user.daily_reward_stage:
             self.user.daily_reward_draw = True
             self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
-            self.user.daily_reward_stage += 20
+            if self.user.daily_reward_stage == 5:
+                self.user.daily_reward_stage = 20
+            else:
+                self.user.daily_reward_stage += 20
         self.user.daily_reward_modify = now_time
         return self.user.daily_reward_count
 
@@ -146,7 +148,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             cash = self.new_version_handler()
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
-
+        self.user = daily_task_attr_reset(self.user)
         video = False
         self.user.songs_count += 1
         if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
@@ -158,7 +160,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
                                 self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
-
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
@@ -190,8 +191,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.reward_count -= reward_count
         if self.user.current_level == 1185:
             self.user.current_level = 0
-        self.user.current_level += 1
         self.daily_rewards_handler()
+        self.user.current_level += 1
         self.user.save()
         self.add_event()
         self.transform_event_handler()

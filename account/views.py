@@ -66,11 +66,15 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         device_id = request.POST.get('device_id', '')
+        channel = request.POST.get('channel', '')
+        version = request.POST.get('version', '')
         obj = self.get_object_by_did(device_id)
         if obj:
             return self.render_to_response({'user': obj})
         user = User()
         user.device_id = device_id
+        user.channel = channel
+        user.version = version
         user.token = self.create_token()
         user.name = self.create_name()
         user.daily_sign_in = 1
