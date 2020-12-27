@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from event.models import AdEvent, ObjectEvent
+from event.models import AdEvent, ObjectEvent, ClickEvent, TransformEvent
 
 
 class AdEventAdmin(admin.ModelAdmin):
@@ -11,9 +11,19 @@ class AdEventAdmin(admin.ModelAdmin):
 
 
 class ObjectEventAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'action', 'object', 'create_time', 'modify_time', 'extra')
+    list_display = ('user_id', 'object', 'action', 'create_time', 'modify_time', 'extra')
     search_fields = ('user_id', 'object')
+
+class ClickEventAdmin(admin.ModelAdmin):
+    list_display = ('mac', 'android_id', 'callback', 'create_time', 'modify_time', 'imei', 'oaid')
+    search_fields = ('mac', 'android_id')
+
+class TransformEventAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'transform', 'action', 'create_time', 'modify_time', 'extra')
+    search_fields = ('user_id', 'transform')
 
 
 admin.site.register(AdEvent, AdEventAdmin)
 admin.site.register(ObjectEvent, ObjectEventAdmin)
+admin.site.register(ClickEvent, ClickEventAdmin)
+admin.site.register(TransformEvent, TransformEventAdmin)

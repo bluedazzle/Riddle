@@ -7,4 +7,5 @@ from event.views import *
 
 urlpatterns = [
     url(r'^ad/$', CreateAdEventView.as_view()),
+    url(r'^click/$', ClickEventView.as_view()),
 ]
