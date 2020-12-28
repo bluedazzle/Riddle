@@ -12,6 +12,7 @@ def handle_transform_event(callback, imei, oaid, type):
     signature = 'wRZHhuS-UsgJh-KNr-mGHpYgoJjXKSXWE'
     url = 'https://ad.oceanengine.com/track/activate/?callback={0}&imei={1}&oaid={2}&event_type={3}&signature={4}'.\
         format(callback, imei, oaid, type, signature)
+    print(url)
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()
