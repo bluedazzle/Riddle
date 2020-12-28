@@ -19,8 +19,8 @@ class ClickEventAdmin(admin.ModelAdmin):
     search_fields = ('mac', 'android_id')
 
 class TransformEventAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'transform', 'action', 'create_time', 'modify_time', 'extra')
-    search_fields = ('user_id', 'transform')
+    list_display = ('name', 'transform', 'action', 'create_time', 'modify_time', 'extra')
+    search_fields = ('name', 'transform')
 
 
 admin.site.register(AdEvent, AdEventAdmin)

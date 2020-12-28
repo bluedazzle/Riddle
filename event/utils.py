@@ -29,7 +29,7 @@ def handle_activate_event(user: User):
                                      | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
     if not objs:
         return
-    object = model(transform='bytedance', action='activate', user_id=user.id)
+    object = model(transform='bytedance', action='activate', user_id=user.id, name=user.name)
     object.save()
     handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_ACTIVATE)
     return
@@ -40,7 +40,7 @@ def handle_pay_event(user: User):
                                       | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
     if not objs:
         return
-    object = model(transform='bytedance', action='pay', user_id=user.id)
+    object = model(transform='bytedance', action='pay', user_id=user.id, name=user.name)
     object.save()
     handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_PAY)
     return
@@ -51,7 +51,7 @@ def handle_twice_event(user: User):
                                       | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
     if not objs:
         return
-    object = model(transform='bytedance', action='twice', user_id=user.id)
+    object = model(transform='bytedance', action='twice', user_id=user.id, name=user.name)
     object.save()
     handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_TWICE)
     return

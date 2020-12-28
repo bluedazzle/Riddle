@@ -42,6 +42,7 @@ class TransformEvent(ExportModelOperationsMixin("TransformEvent"), BaseModel):
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
+    name = models.CharField(max_length=100, default='', verbose_name='用户名')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.user_id, self.transform)
