@@ -26,8 +26,9 @@ def handle_transform_event(callback, imei, oaid, type):
 
 def handle_activate_event(user: User):
     model = TransformEvent
-    objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
-                                     | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    # objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
+    #                                  | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
     object = model(transform='bytedance', action='activate', user_id=user.id, name=user.name)
@@ -37,8 +38,9 @@ def handle_activate_event(user: User):
 
 def handle_pay_event(user: User):
     model = TransformEvent
-    objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
-                                      | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    # objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
+    #                                   | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
     object = model(transform='bytedance', action='pay', user_id=user.id, name=user.name)
@@ -48,8 +50,9 @@ def handle_pay_event(user: User):
 
 def handle_twice_event(user: User):
     model = TransformEvent
-    objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
-                                      | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    # objs = ClickEvent.objects.filter(Q(android_id=user.android_id) | Q(imei=user.imei)
+    #                                   | Q(oaid=user.oaid) | Q(mac=user.mac)).all()
+    objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
     object = model(transform='bytedance', action='twice', user_id=user.id, name=user.name)
