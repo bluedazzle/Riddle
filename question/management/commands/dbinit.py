@@ -109,7 +109,8 @@ class Command(BaseCommand):
                             32)).replace(" ", "")
             questions_singer_list.append((int(infos[u'容易度'][line]), infos[u'歌手名'][line],
                                     infos[u'正确歌曲名'][line], infos[u'错误歌手名'][line], url, infos[u'新的顺序id'][line], tag))
-        questions_singer_list.sort(key=lambda x: (x[0], x[5], x[6]))
+        questions_singer_list.sort(key=lambda x: (x[0], x[6]))
+        # print(questions_singer_list)
 
         for num in range(len(questions_singer_list)):
             obj_question = model_question(title=u'猜猜歌手叫什么', order_id=num+questions_song+1, question_type=2, difficult=questions_singer_list[num][0],
@@ -119,4 +120,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
-        self.question_init(u'question/management/commands/songs.xlsx', 908)
+        self.question_init(u'question/management/commands/songs.xlsx', 959)

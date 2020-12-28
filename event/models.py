@@ -28,7 +28,7 @@ class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
 
 
 class ClickEvent(ExportModelOperationsMixin("ClickEvent"), BaseModel):
-    callback = models.CharField(max_length=128)
+    callback = models.CharField(max_length=512)
     android_id = models.CharField(max_length=128)
     imei = models.CharField(max_length=128)
     oaid = models.CharField(max_length=128)
