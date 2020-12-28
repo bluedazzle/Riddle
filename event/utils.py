@@ -4,6 +4,7 @@ import requests
 from django.db.models import Q
 
 from account.models import User
+from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
 
 def handle_transform_event(callback, imei, oaid, type):
@@ -29,8 +30,7 @@ def handle_activate_event(user: User):
         return
     object = model(transform='bytedance', action='activate', user_id=user.id)
     object.save()
-    # 0 represents activate
-    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, 0)
+    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_ACTIVATE)
     return
 
 def handle_pay_event(user: User):
@@ -41,8 +41,7 @@ def handle_pay_event(user: User):
         return
     object = model(transform='bytedance', action='pay', user_id=user.id)
     object.save()
-    # 2 represents pay
-    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, 2)
+    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_PAY)
     return
 
 def handle_twice_event(user: User):
@@ -53,6 +52,5 @@ def handle_twice_event(user: User):
         return
     object = model(transform='bytedance', action='twice', user_id=user.id)
     object.save()
-    # 6 represents twice
-    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, 6)
+    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_TWICE)
     return
