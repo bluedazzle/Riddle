@@ -64,6 +64,7 @@ class StatusCode(ChoiceBase):
     ERROR_BONUS_LESS = 2010
     ERROR_INVITE_EXIST = 2011
     ERROR_INVITER_CODE = 2012
+    ERROR_DEVICE_CODE = 2013
 
     ERROR_QUESTION_ORDER = 3001
     ERROR_STIMULATE_TAG = 3002
@@ -104,6 +105,7 @@ class StatusCode(ChoiceBase):
         (ERROR_BONUS_LESS, u'尚未达到领取资格'),
         (ERROR_INVITE_EXIST, u'邀请人已存在'),
         (ERROR_INVITER_CODE, u'您的注册时间早于邀请人，无法被邀请'),
+        (ERROR_DEVICE_CODE, u'设息不正确'),
         (ERROR_TASK_FINISHED, u'任务已完成'),
         (ERROR_TASK_NOT_EXIST, u'任务不存在'),
     )

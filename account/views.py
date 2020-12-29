@@ -342,3 +342,22 @@ class ValidView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView)
         self.user.valid_register = True
         self.user.save()
         return self.render_to_response({})
+
+
+class DeviceInfoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        android_id = request.GET.get('android_id', '0')
+        imei = request.GET.get('imei', '0')
+        oaid = request.GET.get('oaid', '0')
+        mac = request.GET.get('mac', '0')
+        if android_id == '0' and imei == '0' and oaid == '0' and mac == '0':
+            self.update_status(StatusCode.ERROR_DEVICE_CODE)
+            return self.render_to_response()
+        self.user.android_id = android_id
+        self.user.imei = imei
+        self.user.oaid = oaid
+        self.user.mac = mac
+        self.user.save()
+        return self.render_to_response()
