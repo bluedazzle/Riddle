@@ -156,7 +156,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
             return self.render_to_response(extra={'error': e.message})
         except Exception as e:
             self.update_status(StatusCode.ERROR_DATA)
-            return self.render_to_response(extra={'error': e})
+            return self.render_to_response(extra={'error': str(e)})
 
 
 class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
