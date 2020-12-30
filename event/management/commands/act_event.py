@@ -11,6 +11,7 @@ from event.utils import upload_activate_event
 class Command(BaseCommand):
     def event_init(self):
         users = User.objects.filter(create_time__gte=datetime.datetime.now().date()).all()
+        print(len(users))
         for user in users:
             upload_activate_event(user)
 
