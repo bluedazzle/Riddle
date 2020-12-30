@@ -7,7 +7,7 @@ import uuid
 
 import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import render
@@ -152,9 +152,12 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
             self.user.sex = sex
             self.user.save()
             return self.render_to_response({'user': self.user})
-        except Exception as e:
+        except ValidationError as e:
             self.update_status(StatusCode.ERROR_DATA)
             return self.render_to_response(extra={'error': e.message})
+        except Exception as e:
+            self.update_status(StatusCode.ERROR_DATA)
+            return self.render_to_response(extra={'error': str(e)})
 
 
 class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
