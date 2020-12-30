@@ -43,6 +43,10 @@ def handle_transform_event(callback, imei, oaid, type):
 
 def handle_activate_event(user: User):
     model = TransformEvent
+    records = model.objects.filter(user_id=user.id, action='activate').all()
+    if records:
+        return
+
     android_id, imei, oaid, mac = transform_blank_to_zero(user)
     objs = ClickEvent.objects.filter(Q(android_id=android_id) | Q(imei=imei)
                                      | Q(oaid=oaid) | Q(mac=mac)).all()

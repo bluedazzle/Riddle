@@ -28,6 +28,7 @@ from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD, STATUS_REVIEW, STATUS_FIN
 from core.dss.Serializer import serializer
 from finance.models import CashRecord
 from task.utils import daily_task_attr_reset, update_task_attr
+from event.utils import handle_activate_event
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -357,4 +358,5 @@ class DeviceInfoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         self.user.oaid = oaid
         self.user.mac = mac
         self.user.save()
+        handle_activate_event(self.user)
         return self.render_to_response()
