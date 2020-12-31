@@ -4,7 +4,7 @@ import requests
 from django.db.models import Q
 
 from account.models import User
-from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
+from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_REGISTER, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
 
 def transform_blank_to_zero(user: User):
@@ -57,6 +57,9 @@ def handle_activate_event(user: User):
     object = model(transform='bytedance', action='activate', user_id=user.id, name=user.name)
     object.save()
     handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_ACTIVATE)
+    object = model(transform='bytedance', action='register', user_id=user.id, name=user.name)
+    object.save()
+    handle_transform_event(objs[0].callback, objs[0].imei, objs[0].oaid, EVENT_TRANSFORM_REGISTER)
     return
 
 def handle_pay_event(user: User):
