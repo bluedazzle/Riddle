@@ -33,7 +33,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     province = models.CharField(max_length=30, default='', null=True, blank=True)
     city = models.CharField(max_length=30, default='', null=True, blank=True, verbose_name='所在城市')
     sex = models.IntegerField(default=3)
-    channel = models.CharField(max_length=50, null=True, blank=True, verbose_name='注册渠道')
+    channel = models.CharField(max_length=256, null=True, blank=True, verbose_name='注册渠道')
     version = models.CharField(max_length=50, null=True, blank=True, verbose_name='注册版本')
     coin = models.IntegerField(default=0)
     cash = models.IntegerField(default=0, verbose_name='现金持有(分)')
