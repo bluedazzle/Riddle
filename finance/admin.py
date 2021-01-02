@@ -1,14 +1,30 @@
 from django.contrib import admin
+from django.forms import ModelForm
+
 from finance.models import *
+
 # Register your models here.
 
 admin.site.register(ExchangeRecord)
-admin.site.register(RedPacket)
+
+
+class UserForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
+        self.fields['belong'].queryset = User.objects.filter(id=self.instance.belong.id).all()
 
 
 class CashRecordAdmin(admin.ModelAdmin):
-    list_display = ('belong.name', 'cash', 'create_time', 'status', 'reason')
+    list_display = ('belong', 'cash', 'create_time', 'status', 'reason')
     search_fields = ('belong',)
+    form = UserForm
 
 
-admin.site.register(CashRecord)
+class RedPacketAdmin(admin.ModelAdmin):
+    list_display = ('belong', 'amount', 'create_time', 'status', 'reward_type')
+    search_fields = ('belong',)
+    form = UserForm
+
+
+admin.site.register(CashRecord, CashRecordAdmin)
+admin.site.register(RedPacket, RedPacketAdmin)
