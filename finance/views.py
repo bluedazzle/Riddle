@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 # Create your views here.
+import hashlib
 import random
 import uuid
 
@@ -14,6 +15,7 @@ from django.views.generic import DetailView
 from django.views.generic import ListView
 from django.db import transaction
 from django.utils import timezone
+from redis.lock import Lock
 
 from account.models import User
 from baseconf.models import WithdrawConf
@@ -23,7 +25,7 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import REWARD_KEY, client_redis_riddle
 from core.consts import DEFAULT_ALLOW_CASH_COUNT, STATUS_USED, PACKET_TYPE_CASH, PACKET_TYPE_WITHDRAW, \
     DEFAULT_NEW_PACKET, DEFAULT_ALLOW_CASH_RIGHT_COUNT, STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH, \
-    DEFAULT_MAX_CASH_LIMIT, STATUS_UNUSE
+    DEFAULT_MAX_CASH_LIMIT, STATUS_UNUSE, DEFAULT_LOCK_TIMEOUT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
@@ -84,6 +86,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
     conf = {}
     withdraw_chance = None
     is_new_withdraw = False
+    withdraw_token = ''
+    withdraw_lock = None
 
     def simple_safe(self):
         if not self.user.city and not self.user.province and self.user.wx_open_id:
@@ -103,7 +107,15 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
                                             expire__gte=now_time).all()
         if queryset.exists():
             self.withdraw_chance = queryset[0]
-            return True
+            chance_str = '{0}{1}{2}{3}'.format(
+                self.withdraw_chance.amount, self.withdraw_chance.belong_id, self.withdraw_chance.create_time,
+                self.withdraw_chance.expire)
+            self.withdraw_token = hashlib.md5(chance_str.encode(encoding='UTF-8')).hexdigest()
+            self.withdraw_lock = Lock(client_redis_riddle, self.withdraw_token, DEFAULT_LOCK_TIMEOUT)
+            if self.withdraw_lock.locked():
+                return False
+            if self.withdraw_lock.acquire():
+                return True
         return False
 
     def valid_withdraw(self, cash):
@@ -182,6 +194,8 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         self.user.save()
         if self.withdraw_chance:
             self.withdraw_chance.save()
+        if self.withdraw_lock:
+            self.withdraw_lock.release()
         return self.render_to_response(dict())
 
 

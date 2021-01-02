@@ -7,8 +7,10 @@ import logging
 
 from core.consts import STATUS_DESTROY, STATUS_ENABLE
 from core.utils import conf
+from redis.lock import Lock
 
 import redis
+
 
 client_redis_riddle = None
 client_redis_ab_test = None
