@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'baseconf',
     'event',
     'task',
+    'open',
     'corsheaders',
     'django_prometheus',
 ]

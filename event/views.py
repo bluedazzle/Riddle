@@ -22,6 +22,7 @@ class CreateAdEventView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, Form
             super(CreateAdEventView, self).form_valid(form)
             event = form.save()
             event.user_id = self.user.id
+            event.app_id = self.app.app_id
             event.save()
             return self.render_to_response(dict())
         except Exception as e:
