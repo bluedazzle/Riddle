@@ -83,6 +83,13 @@ class CheckTokenMixin(object):
 
     def check_app(self):
         access_token = self.request.GET.get('access_token', None) or self.request.POST.get('access_token', None)
+        # 兼容老逻辑
+        if not access_token:
+            app_list = App.objects.filter(name='default').all()
+            if app_list.exists():
+                self.app = app_list[0]
+                return True
+            return True
         app_list = App.objects.filter(access_token=access_token).all()
         if app_list.exists():
             self.app = app_list[0]

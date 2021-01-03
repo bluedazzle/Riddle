@@ -12,7 +12,7 @@ class AdEvent(ExportModelOperationsMixin("AdEvent"), BaseModel):
     channel = models.CharField(default='PANGLE', max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
-    app_id = models.CharField(max_length=128)
+    app_id = models.CharField(max_length=128, default='default')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.user_id, self.ad_type)
@@ -23,7 +23,7 @@ class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
-    app_id = models.CharField(max_length=128)
+    app_id = models.CharField(max_length=128, default='default')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.user_id, self.object)
@@ -35,9 +35,11 @@ class ClickEvent(ExportModelOperationsMixin("ClickEvent"), BaseModel):
     imei = models.CharField(max_length=128)
     oaid = models.CharField(max_length=128)
     mac = models.CharField(max_length=128)
+    app_id = models.CharField(max_length=128, default='default')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.mac, self.android_id)
+
 
 class TransformEvent(ExportModelOperationsMixin("TransformEvent"), BaseModel):
     transform = models.CharField(max_length=100)
@@ -45,6 +47,7 @@ class TransformEvent(ExportModelOperationsMixin("TransformEvent"), BaseModel):
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
     name = models.CharField(max_length=100, default='', verbose_name='用户名')
+    app_id = models.CharField(max_length=128, default='default')
 
     def __unicode__(self):
         return '{0}-{1}'.format(self.user_id, self.transform)
