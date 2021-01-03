@@ -89,10 +89,11 @@ class CheckTokenMixin(object):
             if app_list.exists():
                 self.app = app_list[0]
                 return True
-        app_list = App.objects.filter(access_token=access_token).all()
-        if app_list.exists():
-            self.app = app_list[0]
-            return True
+        else:
+            app_list = App.objects.filter(access_token=access_token).all()
+            if app_list.exists():
+                self.app = app_list[0]
+                return True
         return False
 
     def dispatch(self, request, *args, **kwargs):
