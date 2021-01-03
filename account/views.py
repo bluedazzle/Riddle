@@ -8,7 +8,7 @@ import uuid
 
 import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import render
@@ -29,6 +29,7 @@ from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD, STATUS_REVIEW, STATUS_FIN
 from core.dss.Serializer import serializer
 from finance.models import CashRecord
 from task.utils import daily_task_attr_reset, update_task_attr
+from event.utils import handle_activate_event
 
 
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
@@ -68,11 +69,15 @@ class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, 
 
     def post(self, request, *args, **kwargs):
         device_id = request.POST.get('device_id', '')
+        channel = request.POST.get('channel', '')
+        version = request.POST.get('version', '')
         obj = self.get_object_by_did(device_id)
         if obj:
             return self.render_to_response({'user': obj})
         user = User()
         user.device_id = device_id
+        user.channel = channel
+        user.version = version
         user.token = self.create_token()
         user.name = self.create_name()
         user.daily_sign_in = 1
@@ -158,9 +163,12 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
             self.user.sex = sex
             self.user.save()
             return self.render_to_response({'user': self.user})
-        except Exception as e:
+        except ValidationError as e:
             self.update_status(StatusCode.ERROR_DATA)
             return self.render_to_response(extra={'error': e.message})
+        except Exception as e:
+            self.update_status(StatusCode.ERROR_DATA)
+            return self.render_to_response(extra={'error': str(e)})
 
 
 class VerifyCodeView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, FormView):
@@ -346,3 +354,23 @@ class ValidView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView)
         self.user.valid_register = True
         self.user.save()
         return self.render_to_response({})
+
+
+class DeviceInfoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = User
+
+    def get(self, request, *args, **kwargs):
+        android_id = request.GET.get('android_id', '0')
+        imei = request.GET.get('imei', '0')
+        oaid = request.GET.get('oaid', '0')
+        mac = request.GET.get('mac', '0')
+        if android_id == '0' and imei == '0' and oaid == '0' and mac == '0':
+            self.update_status(StatusCode.ERROR_DEVICE_CODE)
+            return self.render_to_response()
+        self.user.android_id = android_id
+        self.user.imei = imei
+        self.user.oaid = oaid
+        self.user.mac = mac
+        self.user.save()
+        handle_activate_event(self.user)
+        return self.render_to_response()

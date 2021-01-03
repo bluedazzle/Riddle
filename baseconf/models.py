@@ -136,7 +136,7 @@ class ABTest(ExportModelOperationsMixin("ABTest"), BaseModel):
                 if objs.exists():
                     ob = objs[0]
                     cursor = ob.test_b_end_value + 1
-                if cursor + self.traffic > 99:
+                if cursor + self.traffic > 100:
                     raise ValidationError('剩余实验流量不足新建本实验')
             except ValidationError as e:
                 errors['traffic'] = e.error_list

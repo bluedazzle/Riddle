@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 
 # Create your views here.
 from django.views.generic import CreateView
+from django.views.generic import DetailView
 
 from core.Mixin.JsonRequestMixin import JsonRequestMixin
 from core.Mixin.StatusWrapMixin import StatusWrapMixin
-from core.dss.Mixin import CheckTokenMixin, FormJsonResponseMixin
+from core.dss.Mixin import CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from event.forms import AdEventForm
+from event.models import ClickEvent
 
 
 class CreateAdEventView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, FormJsonResponseMixin, CreateView):
@@ -25,3 +27,19 @@ class CreateAdEventView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, Form
             return self.render_to_response(dict())
         except Exception as e:
             return self.render_to_response(extra={'error': e.message})
+
+
+class ClickEventView(StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = ClickEvent
+
+    def get(self, request, *args, **kwargs):
+        callback = request.GET.get('callback', '0')
+        android_id = request.GET.get('android_id', '0')
+        imei = request.GET.get('imei', '0')
+        oaid = request.GET.get('oaid', '0')
+        mac = request.GET.get('mac', '0')
+        if callback == '0' and imei == '0' and oaid == '0':
+            return self.render_to_response()
+        obj = self.model(callback=callback, android_id=android_id, imei=imei, oaid=oaid, mac=mac)
+        obj.save()
+        return self.render_to_response()

@@ -28,6 +28,7 @@ from question.models import Question
 from account.models import User
 from core.Mixin.ABTestMixin import ABTestMixin
 from task.utils import daily_task_attr_reset, update_task_attr
+from event.utils import handle_activate_event, handle_pay_event, handle_twice_event
 
 
 class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -97,15 +98,28 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
     def daily_rewards_handler(self):
         now_time = timezone.localtime()
-        self.user = daily_task_attr_reset(self.user)
         self.user.daily_reward_count += 1
         self.user.daily_right_count += 1
         if self.user.daily_reward_count == self.user.daily_reward_stage:
             self.user.daily_reward_draw = True
             self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
-            self.user.daily_reward_stage += 20
+            if self.user.daily_reward_stage == 5:
+                self.user.daily_reward_stage = 20
+            else:
+                self.user.daily_reward_stage += 20
         self.user.daily_reward_modify = now_time
         return self.user.daily_reward_count
+
+    def transform_event_handler(self):
+        if self.user.current_level == 2:
+            handle_activate_event(self.user)
+        elif self.user.current_level == 16:
+            handle_pay_event(self.user)
+        if self.user.twice_tag == False and \
+                (self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)).day == timezone.localtime().day:
+            self.user.twice_tag = True
+            self.user.save()
+            handle_twice_event(self.user)
 
     @transaction.atomic()
     def get(self, request, *args, **kwargs):
@@ -129,7 +143,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             cash = self.new_version_handler()
 
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
-
+        self.user = daily_task_attr_reset(self.user)
         video = False
         self.user.songs_count += 1
         if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
@@ -141,20 +155,19 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
                                 self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
-
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
             client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
             self.user.continue_count = 0
-            if self.user.current_level == 1185:
+            if self.user.current_level == 1230:
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
-        if self.user.current_step == round_count:
+        if self.user.current_step + 1 == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
         self.user.right_count += 1
@@ -171,12 +184,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > reward_count:
             self.user.reward_count -= reward_count
-        if self.user.current_level == 1185:
+        if self.user.current_level == 1230:
             self.user.current_level = 0
-        self.user.current_level += 1
         self.daily_rewards_handler()
+        self.user.current_level += 1
         self.user.save()
         self.add_event()
+        self.transform_event_handler()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video,
              'continue': self.user.continue_count})
