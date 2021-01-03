@@ -64,9 +64,9 @@ def get_session_key(code, source='old'):
     return False, None, None
 
 
-def get_access_token_by_code(code):
+def get_access_token_by_code(code, app_key=APP_KEY, app_secret=APP_SECRET):
     url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid={0}&secret={1}&code={2}&grant_type=authorization_code'.format(
-        APP_KEY, APP_SECRET, code)
+        app_key, app_secret, code)
     try:
         resp = requests.get(url, timeout=3)
         json_data = resp.json()

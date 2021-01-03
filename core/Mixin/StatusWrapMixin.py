@@ -50,6 +50,7 @@ class StatusCode(ChoiceBase):
     ERROR_PARAMETER = 1004
     ERROR_PAGE = 1005
     ERROR_VALIDATION = 1006
+    ERROR_API_PERMISSION_DENIED = 1007
 
     ERROR_PERMISSION_DENIED = 2000
     ERROR_ACCOUNT_NO_EXIST = 2001
@@ -106,6 +107,7 @@ class StatusCode(ChoiceBase):
         (ERROR_INVITER_CODE, u'您的注册时间早于邀请人，无法被邀请'),
         (ERROR_TASK_FINISHED, u'任务已完成'),
         (ERROR_TASK_NOT_EXIST, u'任务不存在'),
+        (ERROR_API_PERMISSION_DENIED, u'应用未授权或已过期'),
     )
 
 
