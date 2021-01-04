@@ -33,8 +33,8 @@ class ClickEventView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = ClickEvent
 
     def get(self, request, *args, **kwargs):
-        company = request.GET.get('company', '0')
-        channel = request.GET.get('channel', '0')
+        company = request.GET.get('company', 'default')
+        channel = request.GET.get('channel', 'default')
         callback = request.GET.get('callback', 'callback')
         android_id = request.GET.get('android_id', 'android_id')
         imei = request.GET.get('imei', 'imei')
