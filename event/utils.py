@@ -10,19 +10,19 @@ from event.models import ClickEvent, TransformEvent
 
 def transform_blank_to_zero(user: User):
     if user.android_id == '':
-        android_id = 'android_id'
+        android_id = '0'
     else:
         android_id = user.android_id
     if user.imei == '':
-        imei = 'imei'
+        imei = '0'
     else:
         imei = user.imei
     if user.oaid == '':
-        oaid = 'oaid'
+        oaid = '0'
     else:
         oaid = user.oaid
     if user.mac == '':
-        mac = 'mac'
+        mac = '0'
     else:
         mac = user.mac
     return android_id, imei, oaid, mac
