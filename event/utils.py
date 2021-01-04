@@ -29,15 +29,14 @@ def transform_blank_to_zero(user: User):
 
 def handle_transform_event(company, callback, imei, oaid, type):
     if company == 'kuaishou':
-        signature = ''
         time = timezone.localtime().microsecond
         if type == EVENT_TRANSFORM_PAY:
             pay_amount = 1
         else:
             pay_amount = 0
-        url = '{0}&event_type={1}&event_time={2}&purchase_amount={3}&signature={4}'. \
-            format(callback, type, time, pay_amount, signature)
-        # print(url)
+        url = '{0}&event_type={1}&event_time={2}&purchase_amount={3}'. \
+            format(callback, type, time, pay_amount)
+        print(url)
         try:
             resp = requests.get(url, timeout=3)
             json_data = resp.json()
