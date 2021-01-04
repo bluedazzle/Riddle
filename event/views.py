@@ -32,6 +32,8 @@ class ClickEventView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = ClickEvent
 
     def get(self, request, *args, **kwargs):
+        company = request.GET.get('company', '0')
+        channel = request.GET.get('channel', '0')
         callback = request.GET.get('callback', '0')
         android_id = request.GET.get('android_id', '0')
         imei = request.GET.get('imei', '0')
@@ -39,6 +41,6 @@ class ClickEventView(StatusWrapMixin, JsonResponseMixin, DetailView):
         mac = request.GET.get('mac', '0')
         if callback == '0' and imei == '0' and oaid == '0':
             return self.render_to_response()
-        obj = self.model(callback=callback, android_id=android_id, imei=imei, oaid=oaid, mac=mac)
+        obj = self.model(company=company, channel=channel, callback=callback, android_id=android_id, imei=imei, oaid=oaid, mac=mac)
         obj.save()
         return self.render_to_response()
