@@ -80,6 +80,9 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
     daily_sign_in = models.IntegerField(default=0)
     daily_sign_in_token = models.CharField(max_length=64, default='')
 
+    app_id = models.CharField(max_length=1000, default='default')
+    open_id = models.CharField(max_length=128, null=True, blank=True)
+
     def __unicode__(self):
         return '{0}'.format(self.name)
 

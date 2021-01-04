@@ -69,6 +69,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         event.object = 'SONG'
         event.action = 'ANSWER'
         event.user_id = self.user.id
+        event.app_id = self.app.app_id
         event.save()
 
     def handler_default(self, *args, **kwargs):
@@ -128,7 +129,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             reward_count = NEW_VERSION_REWARD_COUNT
         if version >= 20101001:
             reward_count = DEFAULT_REWARD_COUNT
-
         self.conf = get_global_conf()
         round_cash = self.conf.get('round_cash', 30000)
         round_count = self.conf.get('round_count', 1000)

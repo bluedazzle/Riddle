@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
 import random
 import string
 import uuid
@@ -51,11 +52,12 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
         return super(UserInfoView, self).get(self, request, *args, **kwargs)
 
 
-class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
+class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
     model = User
     count = 32
     http_method_names = ['post']
     datetime_type = 'timestamp'
+    force_check = False
 
     def get_object_by_did(self, did=None):
         if not did:
@@ -80,12 +82,13 @@ class UserRegisterView(StatusWrapMixin, FormJsonResponseMixin, CreateView):
         user.name = self.create_name()
         user.daily_sign_in = 1
         user.expire_time = timezone.now() + datetime.timedelta(days=3)
-        invite_code = self.create_invite_code()
-        objs = self.model.objects.filter(invite_code=invite_code).all()
-        while objs.exists():
-            invite_code = self.create_invite_code()
-            objs = self.model.objects.filter(invite_code=invite_code).all()
-        user.invite_code = invite_code
+        # invite_code = self.create_invite_code()
+        # objs = self.model.objects.filter(invite_code=invite_code).all()
+        # while objs.exists():
+        #     invite_code = self.create_invite_code()
+        #     objs = self.model.objects.filter(invite_code=invite_code).all()
+        # user.invite_code = invite_code
+        user.app_id = self.app.app_id
         user.save()
         return self.render_to_response({'user': user})
 
@@ -113,6 +116,12 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
     datetime_type = 'timestamp'
 
     # http_method_names = ['post']
+    def generate_open_id(self, wx_open_id=None):
+        if not wx_open_id:
+            wx_open_id = self.user.wx_open_id
+        com_str = '{0}-{1}'.format(self.app.app_id, wx_open_id)
+        open_id = hashlib.md5(com_str.encode(encoding='UTF-8')).hexdigest()
+        return open_id
 
     def get(self, request, *args, **kwargs):
         try:
@@ -122,8 +131,9 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
                 return self.render_to_response()
             data = get_access_token_by_code(code)
             wx_open_id = data.get('openid')
-            self.slug_field = 'wx_open_id'
-            self.kwargs['slug'] = wx_open_id
+            open_id = self.generate_open_id(wx_open_id)
+            self.slug_field = 'open_id'
+            self.kwargs['slug'] = open_id
             obj = None
             try:
                 obj = self.get_object()
@@ -145,6 +155,7 @@ class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVie
                 self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
                 return self.render_to_response()
             self.user.wx_open_id = wx_open_id
+            self.user.open_id = open_id
             self.user.name = name if name else self.user.name
             self.user.avatar = avatar if avatar else self.user.avatar
             self.user.province = province

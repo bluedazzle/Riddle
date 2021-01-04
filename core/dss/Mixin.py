@@ -7,6 +7,7 @@ import json
 from django.core.paginator import EmptyPage
 
 from account.models import User
+from open.models import App
 from core.Mixin.StatusWrapMixin import StatusCode
 from .Serializer import serializer
 from .TimeFormatFactory import TimeFormatFactory
@@ -42,10 +43,10 @@ class RespCacheMixin(object):
 class CheckTokenMixin(object):
     token = None
     user = None
+    app = None
     force_check = True
 
     def get_current_token(self):
-        print(self.request.GET)
         self.token = self.request.GET.get('token', None) or self.request.POST.get('token', None)
         if not self.token:
             self.token = self.request.session.get(
@@ -74,8 +75,32 @@ class CheckTokenMixin(object):
             return False
         return True
 
+    def wrap_check_app_result(self):
+        if not self.app:
+            self.update_status(StatusCode.ERROR_API_PERMISSION_DENIED)
+            return False
+        return True
+
+    def check_app(self):
+        access_token = self.request.GET.get('access_token', None) or self.request.POST.get('access_token', None)
+        # 兼容老逻辑
+        if not access_token:
+            app_list = App.objects.filter(name='default').all()
+            if app_list.exists():
+                self.app = app_list[0]
+                return True
+        else:
+            app_list = App.objects.filter(access_token=access_token).all()
+            if app_list.exists():
+                self.app = app_list[0]
+                return True
+        return False
+
     def dispatch(self, request, *args, **kwargs):
         self.check_user(request)
+        self.check_app()
+        if not self.wrap_check_app_result():
+            return self.render_to_response()
         if not self.wrap_check_token_result() and self.force_check:
             return self.render_to_response()
         return super(CheckTokenMixin, self).dispatch(request, *args, **kwargs)
