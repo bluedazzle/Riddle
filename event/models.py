@@ -30,8 +30,8 @@ class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
 
 
 class ClickEvent(ExportModelOperationsMixin("ClickEvent"), BaseModel):
-    company = models.CharField(max_length=100)
-    channel = models.CharField(max_length=256)
+    company = models.CharField(max_length=100, default='default')
+    channel = models.CharField(max_length=256, default='default')
     callback = models.CharField(max_length=512)
     android_id = models.CharField(max_length=128)
     imei = models.CharField(max_length=128)
@@ -45,7 +45,7 @@ class ClickEvent(ExportModelOperationsMixin("ClickEvent"), BaseModel):
 
 class TransformEvent(ExportModelOperationsMixin("TransformEvent"), BaseModel):
     transform = models.CharField(max_length=100)
-    channel = models.CharField(max_length=256)
+    channel = models.CharField(max_length=256, default='default')
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)
