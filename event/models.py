@@ -44,7 +44,7 @@ class ClickEvent(ExportModelOperationsMixin("ClickEvent"), BaseModel):
 
 
 class TransformEvent(ExportModelOperationsMixin("TransformEvent"), BaseModel):
-    transform = models.CharField(max_length=100)
+    transform = models.CharField(max_length=100, default='default')
     channel = models.CharField(max_length=256, default='default')
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
