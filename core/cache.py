@@ -29,19 +29,17 @@ RD_TASK_ID_PREFIX = 'task_id_{0}'
 
 def config_client_redis_zhz():
     global client_redis_riddle
-    client_redis_riddle = redis.StrictRedis(db=int(conf.redis_db), host=conf.redis_host, port=int(conf.redis_port))
+    client_redis_riddle = redis.StrictRedis(db=1, host='127.0.0.1', port=6379)
 
 
 def config_redis_ab_test():
     global client_redis_ab_test
-    client_redis_ab_test = redis.StrictRedis(db=int(3), host=conf.redis_host,
-                                             port=int(conf.redis_port))
-
+    client_redis_ab_test = redis.StrictRedis(db=3, host='127.0.0.1',
+                                             port=6379)
 
 def get_global_config_from_cache():
     global client_redis_riddle
     client_redis_riddle.get(GLOBAL_CONF_KEY)
-
 
 def set_global_config_to_cache(conf_data):
     global client_redis_riddle

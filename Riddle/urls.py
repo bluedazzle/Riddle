@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^api/v1/event/', include('event.urls')),
     url(r'^api/v1/task/', include('task.urls')),
     url('', include('django_prometheus.urls')),
+    url(r'^test/', include('open.urls'))
 ]

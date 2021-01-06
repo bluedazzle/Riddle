@@ -14,7 +14,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, JsonResponseMixin, CheckTo
 from baseconf.models import GlobalConf, PageConf, WithdrawConf
 from core.utils import get_global_conf
 
-
+#TODO bug + 1 这里应该用View DetailView 没用到
 class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = GlobalConf
     slug_field = 'token'
@@ -33,6 +33,7 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
     def get(self, request, *args, **kwargs):
         conf = get_global_conf()
         conf['allow_cash_list'] = self.format_list(conf['allow_cash_list'])
+
         return self.render_to_response(conf)
 
 

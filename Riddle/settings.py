@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = conf.debug == 'True'
+DEBUG = 'True'
 
 ALLOWED_HOSTS = [
     'nginx',
@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
     '202.112.237.65',
     'app.guess-song.plutus-cat.com',
     'tapp.guess-song.plutus-cat.com',
+    '172.16.1.58'
 ]
 
 # Application definition
@@ -100,11 +101,29 @@ WSGI_APPLICATION = 'Riddle.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django_prometheus.db.backends.postgresql',
-        'NAME': conf.riddle_name,
-        'USER': conf.riddle_user,
-        'PASSWORD': conf.riddle_password,
-        'HOST': conf.riddle_host,
-        'PORT': conf.riddle_port,
+        'NAME': 'riddle_test',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
+        'HOST': '127.0.0.1',
+        'PORT': 5432,
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level':'DEBUG',
+        },
     }
 }
 

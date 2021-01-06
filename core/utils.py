@@ -18,7 +18,9 @@ def get_global_conf():
     from core.dss.Serializer import serializer
 
     global_conf = get_global_config_from_cache()
+    print(global_conf)
     if not global_conf:
+        print('xxxx')
         obj = GlobalConf.objects.all()[0]
         global_conf = serializer(obj, output_type='json', exclude_attr=['create_time', 'modify_time'])
         set_global_config_to_cache(global_conf)

@@ -30,9 +30,11 @@ from core.dss.Serializer import serializer
 from finance.models import CashRecord
 from task.utils import daily_task_attr_reset, update_task_attr
 from event.utils import handle_activate_event
+from django.http import  HttpResponse
+from core.cache import client_redis_riddle, REWARD_KEY
 
-
-class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
+# todo MultipleJsonResponseMixin 改为 JsonResponseMixin
+class UserInfoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     model = User
     slug_field = 'token'
     datetime_type = 'timestamp'
@@ -49,6 +51,7 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
         return self.daily_rewards_handler()
 
     def get(self, request, *args, **kwargs):
+        print(self.user.id)
         return super(UserInfoView, self).get(self, request, *args, **kwargs)
 
 
@@ -108,6 +111,12 @@ class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, 
             random.sample('1234567890ZYXWVUTSRQPONMLKJIHGFEDCBAZYXWVUTSRQPONMLKJIHGFEDCBA', 8)).replace(" ", "")
         return invite_code
 
+class TEST(DetailView, StatusWrapMixin):
+    slug_field = 'token'
+    model = User
+
+    def get_queryset(self):
+        return super(TEST, self).get_queryset()
 
 class WxLoginView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     force_check = False
