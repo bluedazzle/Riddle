@@ -40,7 +40,7 @@ def config_redis_ab_test():
 
 def get_global_config_from_cache():
     global client_redis_riddle
-    client_redis_riddle.get(GLOBAL_CONF_KEY)
+    return client_redis_riddle.get(GLOBAL_CONF_KEY)
 
 
 def set_global_config_to_cache(conf_data):
