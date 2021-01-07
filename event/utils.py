@@ -27,10 +27,8 @@ def transform_blank_to_zero(user: User):
         mac = user.mac
     return android_id, imei, oaid, mac
 
-def handle_transform_event(user: User, event: ClickEvent, type):
+def handle_transform_event(event: ClickEvent, type):
     if event.company == 'kuaishou':
-        if event.channel != user.channel:
-            return
         time = timezone.localtime().microsecond
         if type == EVENT_TRANSFORM_PAY:
             pay_amount = 1
@@ -48,8 +46,6 @@ def handle_transform_event(user: User, event: ClickEvent, type):
         except Exception as e:
             raise e
     else:
-        if event.channel != 'default' and event.channel != user.channel:
-            return
         signature = 'wRZHhuS-UsgJh-KNr-mGHpYgoJjXKSXWE'
         url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'.\
             format(event.callback, event.imei, event.oaid, type, signature)
@@ -77,12 +73,14 @@ def handle_activate_event(user: User):
     # objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
+    if objs[0].channel != 'default' and objs[0].channel != user.channel:
+        return
     obj = model(transform=objs[0].company, channel=objs[0].channel, action='activate', user_id=user.id, name=user.name)
     obj.save()
-    handle_transform_event(user, objs[0], EVENT_TRANSFORM_ACTIVATE)
+    handle_transform_event(objs[0], EVENT_TRANSFORM_ACTIVATE)
     obj = model(transform=objs[0].company, channel=objs[0].channel, action='register', user_id=user.id, name=user.name)
     obj.save()
-    handle_transform_event(user, objs[0], EVENT_TRANSFORM_REGISTER)
+    handle_transform_event(objs[0], EVENT_TRANSFORM_REGISTER)
     return
 
 def handle_pay_event(user: User):
@@ -95,9 +93,11 @@ def handle_pay_event(user: User):
     # objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
+    if objs[0].channel != 'default' and objs[0].channel != user.channel:
+        return
     obj = model(transform=objs[0].company, channel=objs[0].channel, action='pay', user_id=user.id, name=user.name)
     obj.save()
-    handle_transform_event(user, objs[0], EVENT_TRANSFORM_PAY)
+    handle_transform_event(objs[0], EVENT_TRANSFORM_PAY)
     return
 
 def handle_twice_event(user: User):
@@ -110,7 +110,9 @@ def handle_twice_event(user: User):
     # objs = ClickEvent.objects.filter(imei=user.imei).all()
     if not objs:
         return
+    if objs[0].channel != 'default' and objs[0].channel != user.channel:
+        return
     obj = model(transform=objs[0].company, channel=objs[0].channel, action='twice', user_id=user.id, name=user.name)
     obj.save()
-    handle_transform_event(user, objs[0], EVENT_TRANSFORM_TWICE)
+    handle_transform_event(objs[0], EVENT_TRANSFORM_TWICE)
     return
