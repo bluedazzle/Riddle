@@ -48,6 +48,8 @@ def handle_transform_event(user: User, event: ClickEvent, type):
         except Exception as e:
             raise e
     else:
+        if event.channel != 'default' and event.channel != user.channel:
+            return
         signature = 'wRZHhuS-UsgJh-KNr-mGHpYgoJjXKSXWE'
         url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'.\
             format(event.callback, event.imei, event.oaid, type, signature)
