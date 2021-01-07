@@ -95,6 +95,7 @@ def daily_task_attr_reset(user: User):
         user.daily_reward_stage = 20
         user.daily_reward_count = 0
         user.daily_right_count = 0
+        user.daily_continuous_right_count = 0
         user.daily_watch_ad = 0
         user.daily_reward_modify = now_time
         user.daily_coin_exchange = False

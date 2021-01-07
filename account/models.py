@@ -88,3 +88,15 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
 
     def __str__(self):
         return '{0}'.format(self.name)
+
+
+class UserSingerCount(ExportModelOperationsMixin("UserSingerRightCount"), BaseModel):
+    singer_id = models.IntegerField(default=0)
+    right_count = models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.belong.name, self.singer_id, self.right_count)
+
+    def __str__(self):
+        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.belong.name, self.singer_id, self.right_count)
