@@ -141,9 +141,11 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
         for task_conf in daily_task_config:
             target = self.format_target(getattr(self.user, task_conf.get("target")))
             title = task_conf.get("title")
-            
+            daily_continue_count_stage = self.user.daily_continue_count_stage
+
             if task_conf.get("slug") == "DAILY_CONTINUOUS_RIGHT_COUNT":
-                task = create_task(self.user, target, task_conf.get("slug"), title, **task_conf.get("detail")[self.user.daily_reward_stage])
+                task = create_task(self.user, target, task_conf.get("slug"), title,
+                                   **task_conf.get("detail")[daily_continue_count_stage])
                 task_list.append(task)
             else:
                 for itm in task_conf.get("detail"):
@@ -157,10 +159,10 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
             
             if task_conf.get("slug") == "COMMON_TASK_SINGER_GUSS_RIGHT":
                 for user_singer_count in user_singer_count_list:
-                    right_count = user_singer_count.right_count
+                    target = user_singer_count.right_count
                     singer_id = user_singer_count.singer_id
 
-                    task = create_task(self.user, right_count, task_conf.get("slug"), title, singer_id)
+                    task = create_task(self.user, target, task_conf.get("slug"), title, task_conf["detail"][singer_id])
 
                     task_list.append(task)
             else:
@@ -224,6 +226,10 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         conf = self.get_task_config()
         for task in conf:
             title = task.get("title")
+            slug = task.get("slug")
+            #  判断 当前任务
+            if slug == "DAILY_CONTINUOUS_RIGHT_COUNT" or slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
+                pass
             for itm in task.get("detail"):
                 task = create_task(self.user, 0, task.get("slug"), title, **itm)
                 task_dict[task.get('id')] = task

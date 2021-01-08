@@ -43,11 +43,19 @@ def create_task(user: User, target, task_slug: str, title_template, *args, **kwa
     elif task_slug.startswith('DAILY_'):
         date = datetime.date.today()
         unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(date)])
+    elif task_slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
+        unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")),
+                               str(kwargs.get("singer"))])
     else:
         unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward"))])
     task_id = hashlib.md5(unique_str.encode(encoding='UTF-8')).hexdigest()
     task['id'] = task_id
-    task['title'] = title_template.format(kwargs.get("level"))
+
+    if task_slug == 'COMMON_TASK_SINGER_GUSS_RIGHT':
+        task['title'] = title_template.format(kwargs.get("level"), kwargs.get("singer"))
+    else:
+        task['title'] = title_template.format(kwargs.get("level"))
+
     task['slug'] = task_slug
     task['reward'] = kwargs.get("reward")
     task['reward_type'] = kwargs.get("reward_type")
@@ -74,6 +82,11 @@ def create_task_history(task_id, user_id, slug, task_type=TASK_TYPE_DAILY, **kwa
 
 def send_reward(user: User, amount: int, reward_type: str):
     reward_type = reward_type.upper()
+
+    # todo 小额提现
+    if reward_type == 'WITHDRAW':
+        pass
+
     reward_type_dict = {'COIN': 'coin', 'CASH': 'cash'}
     reward_type_attr = reward_type_dict.get(reward_type)
     if not reward_type_attr:
@@ -95,7 +108,8 @@ def daily_task_attr_reset(user: User):
         user.daily_reward_stage = 20
         user.daily_reward_count = 0
         user.daily_right_count = 0
-        user.daily_continuous_right_count = 0
+        user.continue_count = 0
+        user.daily_continue_count_stage = 0
         user.daily_watch_ad = 0
         user.daily_reward_modify = now_time
         user.daily_coin_exchange = False
