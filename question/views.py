@@ -100,7 +100,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         now_time = timezone.localtime()
         self.user.daily_reward_count += 1
         self.user.daily_right_count += 1
-        self.user.daily_continuous_right_count += 1
         if self.user.daily_reward_count == self.user.daily_reward_stage:
             self.user.daily_reward_draw = True
             self.user.daily_reward_expire = now_time + datetime.timedelta(minutes=10)
@@ -164,7 +163,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
-            self.user.daily_continuous_right_count = 0
 
             client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
             self.user.continue_count = 0
