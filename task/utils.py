@@ -4,15 +4,19 @@ import json
 
 import datetime
 import random
+import uuid
 
 from django.db.models import BooleanField
 from django.utils import timezone
 
+
 from account.models import User
+from core.consts import STATUS_USED,STATUS_FAIL, STATUS_REVIEW, STATUS_FINISH
 from core.cache import search_task_id_by_cache, set_task_id_to_cache
 from core.consts import TASK_DOING, TASK_OK, TASK_FINISH, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from task.models import DailyTask, CommonTask
-
+from finance.models import CashRecord
+from core.wx import send_money_by_open_id
 
 def valid_task(slug, task_id):
     if search_task_id_by_cache(task_id):
@@ -80,12 +84,35 @@ def create_task_history(task_id, user_id, slug, task_type=TASK_TYPE_DAILY, **kwa
     return new_history
 
 
+def draw(user: User, cash):
+    uid = str(uuid.uuid1())
+    suid = ''.join(uid.split('-'))
+
+    cash_record = CashRecord()
+    cash_record.cash_type = '任务提现'
+    cash_record.belong = user
+    cash_record.status = STATUS_REVIEW
+    cash_record.reason = '审核中'
+    cash_record.trade_no = suid
+    if cash == 30:
+        resp = send_money_by_open_id(suid, user.wx_open_id, cash)
+
+        if resp.get('result_code') == 'SUCCESS':
+            cash_record.reason = '成功'
+            cash_record.status = STATUS_FINISH
+        else:
+            fail_message = resp.get('err_code_des', 'default_error')
+            cash_record.reason = fail_message
+            cash_record.status = STATUS_FAIL
+
+    cash_record.save()
+
+
 def send_reward(user: User, amount: int, reward_type: str):
     reward_type = reward_type.upper()
 
-    # todo 小额提现
     if reward_type == 'WITHDRAW':
-        pass
+        draw(user, amount)
 
     reward_type_dict = {'COIN': 'coin', 'CASH': 'cash'}
     reward_type_attr = reward_type_dict.get(reward_type)
