@@ -238,6 +238,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
     def send_reward(self, slug, task_id):
         task_dict = self.get_task_dict()
         task = task_dict.get(task_id)
+
         if not task:
             self.update_status(StatusCode.ERROR_TASK_NOT_EXIST)
             raise ValueError('任务不存在')
@@ -248,17 +249,26 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
             if not objs.exists():
                 raise ValueError('任务未完成')
 
-            user_singer_count = objs[0].right_count
+            user_singer = objs[0]
+            user_singer_count = user_singer.right_count
 
             if user_singer_count < task.get('level'):
                 raise ValueError('任务未完成')
+
+            max_singer_id = UserSingerCount.objects.filter(user_id=self.user.id).order_by('-singer_id')[0].singer_id
+            user_singer.right_count = 0
+            user_singer.singer_id = max_singer_id + 1
+            user_singer.save()
         elif slug == "DAILY_CONTINUE_COUNT":
-            pass
+            if self.user.continue_count < task.get('level'):
+                raise ValueError('任务未完成')
+            self.user.continue_count = 0
+            self.user.daily_continue_count_stage += 1
 
         reward = task.get('reward')
-
         reward_type = task.get('reward_type')
         user = send_reward(self.user, reward, reward_type)
+
         user.save()
         return reward, reward_type
 
