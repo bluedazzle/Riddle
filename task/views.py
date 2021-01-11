@@ -17,8 +17,8 @@ from core.cache import get_daily_task_config_from_cache, set_daily_task_config_t
 from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
+from account.models import UserSingerCount
 from task.utils import create_task, create_task_history, send_reward
-
 
 class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     task_config = None
@@ -58,7 +58,6 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
             self.user.save()
         return self.render_to_response({"daily_task": daily_task_list, 'task_ok_count': task_ok})
 
-
 class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     task_config = None
     model = TaskConf
@@ -82,6 +81,7 @@ class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, De
         self.get_common_task_config()
         common_task_list = list()
         task_ok = 0
+
         for task in self.task_config:
             target = self.format_target(getattr(self.user, task.get("target")))
             title = task.get("title")
@@ -92,6 +92,87 @@ class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, De
                 common_task_list.append(task)
         common_task_list.sort(key=lambda x: x.get("status"))
         return self.render_to_response({"common_task": common_task_list, 'task_ok_count': task_ok})
+
+
+class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = TaskConf
+
+    @staticmethod
+    def get_common_task_config():
+        conf = get_common_task_config_from_cache()
+        if not conf:
+            obj = TaskConf.objects.all()[0]
+            conf = obj.common_task_config
+            set_common_task_config_to_cache(conf)
+            conf = json.loads(conf)
+        return conf
+
+    @staticmethod
+    def get_daily_task_config():
+        conf = get_daily_task_config_from_cache()
+        if not conf:
+            obj = TaskConf.objects.all()[0]
+            conf = obj.daily_task_config
+            set_daily_task_config_to_cache(conf)
+            conf = json.loads(conf)
+        return conf
+
+    @staticmethod
+    def format_target(target):
+        if isinstance(target, bool):
+            return 1 if target else 0
+        return target
+
+    def get(self, request, *args, **kwargs):
+        common_task_config = self.get_common_task_config()
+        daily_task_config = self.get_daily_task_config()
+
+        user_singer_count_list = UserSingerCount.objects.filter(user_id=self.user.id).order_by('singer_id').all()
+
+        if not user_singer_count_list.exists():
+            user_singer_count_list = []
+            for i in range(3):
+                user_singer_count_list.append(UserSingerCount(user_id=self.user.id, singer_id=i))
+
+            UserSingerCount.objects.bulk_create(user_singer_count_list)
+
+        task_list = list()
+
+        for task_conf in daily_task_config:
+            target = self.format_target(getattr(self.user, task_conf.get("target")))
+            title = task_conf.get("title")
+            daily_continue_count_stage = self.user.daily_continue_count_stage
+
+            if task_conf.get("slug") == "DAILY_CONTINUE_COUNT":
+                task = create_task(self.user, target, task_conf.get("slug"), title,
+                                   **task_conf.get("detail")[daily_continue_count_stage])
+                task_list.append(task)
+            else:
+                for itm in task_conf.get("detail"):
+                    task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
+                    task_list.append(task)
+
+        for task_conf in common_task_config:
+            title = task_conf.get("title")
+            
+            if task_conf.get("slug") == "COMMON_TASK_SINGER_GUSS_RIGHT":
+                for user_singer_count in user_singer_count_list:
+                    target = user_singer_count.right_count
+                    singer_id = user_singer_count.singer_id
+
+                    task = create_task(self.user, target, task_conf.get("slug"), title, task_conf["detail"][singer_id])
+
+                    task_list.append(task)
+            else:
+                target = self.format_target(getattr(self.user, task_conf.get("target")))
+
+                for itm in task_conf.get("detail"):
+                    task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
+                    if task.get("status") == TASK_OK:
+                        pass
+                    task_list.append(task)
+
+        return self.render_to_response({"task_list": task_list})
 
 
 class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
@@ -145,20 +226,49 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
         conf = self.get_task_config()
         for task in conf:
             title = task.get("title")
+            slug = task.get("slug")
+            #  判断 当前任务
+            if slug == "DAILY_CONTINUE_COUNT" or slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
+                pass
             for itm in task.get("detail"):
                 task = create_task(self.user, 0, task.get("slug"), title, **itm)
                 task_dict[task.get('id')] = task
         return task_dict
 
-    def send_reward(self, task_id):
+    def send_reward(self, slug, task_id):
         task_dict = self.get_task_dict()
         task = task_dict.get(task_id)
+
         if not task:
             self.update_status(StatusCode.ERROR_TASK_NOT_EXIST)
             raise ValueError('任务不存在')
+
+        if slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
+            objs = UserSingerCount.objects.filter(user_id=self.user.id, singer_id=task.get('singer_id'))
+
+            if not objs.exists():
+                raise ValueError('任务未完成')
+
+            user_singer = objs[0]
+            user_singer_count = user_singer.right_count
+
+            if user_singer_count < task.get('level'):
+                raise ValueError('任务未完成')
+
+            max_singer_id = UserSingerCount.objects.filter(user_id=self.user.id).order_by('-singer_id')[0].singer_id
+            user_singer.right_count = 0
+            user_singer.singer_id = max_singer_id + 1
+            user_singer.save()
+        elif slug == "DAILY_CONTINUE_COUNT":
+            if self.user.continue_count < task.get('level'):
+                raise ValueError('任务未完成')
+            self.user.continue_count = 0
+            self.user.daily_continue_count_stage += 1
+
         reward = task.get('reward')
         reward_type = task.get('reward_type')
         user = send_reward(self.user, reward, reward_type)
+
         user.save()
         return reward, reward_type
 
@@ -178,7 +288,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
             slug = request.POST.get('slug')
             self.get_task_type(slug)
             self.valid_task(slug, task_id)
-            amount, reward_type = self.send_reward(task_id)
+            amount, reward_type = self.send_reward(slug, task_id)
             self.create_task_history(task_id, slug)
             return self.render_to_response(
                 {"coin": self.user.coin, "cash": self.user.cash, 'amount': amount, 'reward_type': reward_type})
