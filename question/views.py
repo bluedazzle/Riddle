@@ -178,7 +178,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.current_step += 1
         self.user.right_count += 1
         self.user.reward_count += 1
-        self.user.continue_count = min(199, self.user.continue_count + 1)
+        self.user.continue_count += 1
         self.user.cash += cash
         reward = False
         reward_url = ''

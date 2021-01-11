@@ -94,6 +94,7 @@ def draw(user: User, cash):
     cash_record.status = STATUS_REVIEW
     cash_record.reason = '审核中'
     cash_record.trade_no = suid
+    # todo 任务里最高可以领十块钱 这里需要改下
     if cash == 30:
         resp = send_money_by_open_id(suid, user.wx_open_id, cash)
 
