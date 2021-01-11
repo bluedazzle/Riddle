@@ -64,6 +64,7 @@ def create_task(user: User, target, task_slug: str, title_template, *args, **kwa
     task['reward'] = kwargs.get("reward")
     task['reward_type'] = kwargs.get("reward_type")
     status = TASK_DOING
+
     if target >= kwargs.get("level"):
         status = TASK_OK
     if valid_task(task_slug, task_id):
@@ -115,6 +116,8 @@ def send_reward(user: User, amount: int, reward_type: str):
     if reward_type == 'WITHDRAW':
         draw(user, amount)
         user.daily_reward_amount -= amount
+
+        return user
 
     reward_type_dict = {'COIN': 'coin', 'CASH': 'cash'}
     reward_type_attr = reward_type_dict.get(reward_type)
