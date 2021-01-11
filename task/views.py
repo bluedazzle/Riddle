@@ -7,7 +7,7 @@ from django.db import transaction
 from django.shortcuts import render
 
 # Create your views here.
-from django.views.generic import DetailView
+from django.views.generic import DetailView, View
 
 from baseconf.models import TaskConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
@@ -18,7 +18,7 @@ from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
 from account.models import UserSingerCount
-from task.utils import create_task, create_task_history, send_reward
+from task.utils import create_task, create_task_history, send_reward, get_singer_id
 
 class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     task_config = None
@@ -154,13 +154,13 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
 
         for task_conf in common_task_config:
             title = task_conf.get("title")
-            
+
             if task_conf.get("slug") == "COMMON_TASK_SINGER_GUSS_RIGHT":
                 for user_singer_count in user_singer_count_list:
                     target = user_singer_count.right_count
                     singer_id = user_singer_count.singer_id
 
-                    task = create_task(self.user, target, task_conf.get("slug"), title, task_conf["detail"][singer_id])
+                    task = create_task(self.user, target, task_conf.get("slug"), title, **task_conf["detail"][singer_id])
 
                     task_list.append(task)
             else:
@@ -175,7 +175,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
         return self.render_to_response({"task_list": task_list})
 
 
-class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
     task_type = TASK_TYPE_DAILY
 
     def valid_task(self, slug, task_id):
@@ -244,7 +244,10 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
             raise ValueError('任务不存在')
 
         if slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
-            objs = UserSingerCount.objects.filter(user_id=self.user.id, singer_id=task.get('singer_id'))
+            singer = task.get('singer')
+            singer_id = get_singer_id(singer)
+
+            objs = UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id)
 
             if not objs.exists():
                 raise ValueError('任务未完成')
@@ -294,7 +297,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Detail
                 {"coin": self.user.coin, "cash": self.user.cash, 'amount': amount, 'reward_type': reward_type})
         except ValueError as e:
             logging.exception(e)
-            return self.render_to_response()
+            return self.render_to_response(extra={'error': str(e)})
         except Exception as e:
             logging.exception(e)
             self.update_status(StatusCode.ERROR_DATA)
