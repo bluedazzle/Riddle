@@ -113,6 +113,7 @@ def send_reward(user: User, amount: int, reward_type: str):
 
     if reward_type == 'WITHDRAW':
         draw(user, amount)
+        user.daily_reward_amount -= amount
 
     reward_type_dict = {'COIN': 'coin', 'CASH': 'cash'}
     reward_type_attr = reward_type_dict.get(reward_type)

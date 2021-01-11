@@ -67,6 +67,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
 
     ab_test_id = models.CharField(max_length=100, default='')
     valid_register = models.BooleanField(default=False)
+    daily_reward_amount = models.IntegerField(default=200)  # 今日可领取现金
     daily_continue_count_stage = models.IntegerField(default=0)  # 连对任务阶段
     daily_reward_stage = models.IntegerField(default=5)  # 日常任务阶段 20/40/60/80
     daily_reward_draw = models.BooleanField(default=False)  # 是否可以抽取提现机会
