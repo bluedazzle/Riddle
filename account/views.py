@@ -35,21 +35,62 @@ from event.utils import handle_activate_event
 class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, DetailView):
     model = User
     slug_field = 'token'
+    force_check = False
     datetime_type = 'timestamp'
     http_method_names = ['get']
     exclude_attr = ['daily_sign_in_token', 'daily_sign_in', 'daily_watch_ad', 'daily_withdraw', 'daily_lucky_draw',
                     'daily_coin_exchange', 'daily_reward_modify']
 
     def daily_rewards_handler(self):
+        if not self.user:
+            token = self.request.GET.get("token", "")
+            if not token:
+                return None
+            self.user = self.create_user(token)
         user = daily_task_attr_reset(self.user)
         user.save()
         return user
 
-    def get_object(self, queryset=None):
-        return self.daily_rewards_handler()
+    # def get_object(self, queryset=None):
+    #     return self.daily_rewards_handler()
 
     def get(self, request, *args, **kwargs):
-        return super(UserInfoView, self).get(self, request, *args, **kwargs)
+        user = self.daily_rewards_handler()
+        if not user:
+            self.update_status(StatusCode.ERROR_PERMISSION_DENIED)
+            self.render_to_response({})
+        return self.render_to_response({'user': user})
+
+    def create_user(self, token=None):
+        user = User()
+        user.token = token if token else self.create_token()
+        user.name = self.create_name()
+        user.daily_sign_in = 1
+        user.expire_time = timezone.now() + datetime.timedelta(days=3)
+        # invite_code = self.create_invite_code()
+        # objs = self.model.objects.filter(invite_code=invite_code).all()
+        # while objs.exists():
+        #     invite_code = self.create_invite_code()
+        #     objs = self.model.objects.filter(invite_code=invite_code).all()
+        # user.invite_code = invite_code
+        user.app_id = self.app.app_id
+        return user
+
+    @staticmethod
+    def create_name():
+        name = '游客' + ''.join(random.sample('1234567890', 7)).replace(" ", "")
+        return name
+
+    def create_token(self):
+        token = ''.join(
+            random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
+                          self.count)).replace(" ", "")
+        return token
+
+    def create_invite_code(self):
+        invite_code = ''.join(
+            random.sample('1234567890ZYXWVUTSRQPONMLKJIHGFEDCBAZYXWVUTSRQPONMLKJIHGFEDCBA', 8)).replace(" ", "")
+        return invite_code
 
 
 class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, CreateView):
