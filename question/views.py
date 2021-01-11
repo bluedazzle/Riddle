@@ -11,6 +11,7 @@ import logging
 import datetime
 
 from django.db import transaction
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from django.utils import timezone
@@ -24,10 +25,10 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
 from event.models import ObjectEvent
-from question.models import Question
-from account.models import User
+from question.models import Question, Song
+from account.models import User, UserSingerCount
 from core.Mixin.ABTestMixin import ABTestMixin
-from task.utils import daily_task_attr_reset, update_task_attr
+from task.utils import daily_task_attr_reset, update_task_attr, get_singer_id
 from event.utils import handle_activate_event, handle_pay_event, handle_twice_event
 
 
@@ -172,6 +173,14 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.save()
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
+
+        song = Song.objects.filter(id=obj.song_id)[0]
+
+        if song.exists():
+            singer_id = get_singer_id(song.singer)
+
+            if singer_id != -1:
+                UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(right_count=F('right_count') + 1)
 
         if self.user.current_step + 1 == round_count:
             self.user.current_step = 0

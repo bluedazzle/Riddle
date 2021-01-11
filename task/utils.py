@@ -172,3 +172,18 @@ def create_token(count=32):
         random.sample('ZYXWVUTSRQPONMLKJIHGFEDCBA1234567890zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba',
                       count)).replace(" ", "")
     return token
+
+
+def get_singer_id(singer):
+    singer_list = {
+        "邓丽君": 0,
+        "周华健": 1,
+        "李宗盛": 2,
+        "蒋大为": 3,
+        "宋祖英": 4,
+        "毛阿敏": 5,
+        "刘德华": 6,
+        "那英": 7,
+    }
+
+    return singer_list.get(singer, -1)
