@@ -174,13 +174,10 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
-        song = Song.objects.filter(id=obj.song_id)[0]
+        singer_id = get_singer_id(obj.singer)
 
-        if song.exists():
-            singer_id = get_singer_id(song.singer)
-
-            if singer_id != -1:
-                UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(right_count=F('right_count') + 1)
+        if singer_id != -1:
+            UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(right_count=F('right_count') + 1)
 
         if self.user.current_step + 1 == round_count:
             self.user.current_step = 0
