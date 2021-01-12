@@ -39,7 +39,7 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     datetime_type = 'timestamp'
     http_method_names = ['get']
     exclude_attr = ['daily_sign_in_token', 'daily_sign_in', 'daily_watch_ad', 'daily_withdraw', 'daily_lucky_draw',
-                    'daily_coin_exchange', 'daily_reward_modify']
+                    'daily_coin_exchange', 'daily_reward_modify', 'daily_reward_stage']
 
     def daily_rewards_handler(self):
         if not self.user:
