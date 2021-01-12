@@ -226,10 +226,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
         conf = self.get_task_config()
         for task in conf:
             title = task.get("title")
-            slug = task.get("slug")
-            #  判断 当前任务
-            if slug == "DAILY_CONTINUE_COUNT" or slug == "COMMON_TASK_SINGER_GUSS_RIGHT":
-                pass
+
             for itm in task.get("detail"):
                 task = create_task(self.user, 0, task.get("slug"), title, **itm)
                 task_dict[task.get('id')] = task
