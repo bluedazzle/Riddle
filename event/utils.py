@@ -59,25 +59,26 @@ def handle_transform_event(event: ClickEvent, type):
         except Exception as e:
             raise e
     if event.company == 'tencent':
-        signature = ''
         url = '{0}'.format(event.callback)
+        headers = {
+            'Content-Type': 'application/json',
+            'cache-control': 'no-cache'
+        }
         action_type = transform_type_to_str(type)
         data = {'actions': [{
             'user_id': {
                 'hash_imei': event.imei,
-                'hash_android': event.android_id,
+                'hash_android_id': event.android_id,
                 'oaid': event.oaid
             },
             'action_type': action_type
         }]}
         # print(url)
         try:
-            # resp = requests.get(url, timeout=3)
-            # json_data = resp.json()
-            # res = requests.post(url, data=json.dumps(data)).content
-            res = requests.post(url, data=json.dumps(data))
-            print(res.text)
-            json_data = json.loads(res.content)
+            # res = requests.Request('POST', url, headers=headers, data=json.dumps(data))
+            # print(res.prepare().method, res.prepare().url, res.prepare().headers, res.prepare().body)
+            res = requests.post(url, headers=headers, data=json.dumps(data)).content
+            json_data = json.loads(res)
             if json_data.get('code') == 0:
                 return
             raise ValueError('tencent transform callback failed')
