@@ -1,5 +1,6 @@
 # coding: utf-8
 import requests
+import json
 
 from django.db.models import Q
 from django.utils import timezone
@@ -7,6 +8,18 @@ from django.utils import timezone
 from account.models import User
 from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_REGISTER, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
+
+def transform_type_to_str(type: int):
+    if type == EVENT_TRANSFORM_ACTIVATE:
+        return 'ACTIVATE_APP'
+    elif type == EVENT_TRANSFORM_REGISTER:
+        return 'REGISTER'
+    elif type == EVENT_TRANSFORM_PAY:
+        return 'PURCHASE'
+    elif type == EVENT_TRANSFORM_TWICE:
+        return 'START_APP'
+    else:
+        return ''
 
 def transform_blank_to_zero(user: User):
     if user.android_id == '':
@@ -43,6 +56,31 @@ def handle_transform_event(event: ClickEvent, type):
             if json_data.get('result') == 1:
                 return
             raise ValueError('kuaishou transform callback failed')
+        except Exception as e:
+            raise e
+    if event.company == 'tencent':
+        signature = ''
+        url = '{0}'.format(event.callback)
+        action_type = transform_type_to_str(type)
+        data = {'actions': [{
+            'user_id': {
+                'hash_imei': event.imei,
+                'hash_android': event.android_id,
+                'oaid': event.oaid
+            },
+            'action_type': action_type
+        }]}
+        # print(url)
+        try:
+            # resp = requests.get(url, timeout=3)
+            # json_data = resp.json()
+            # res = requests.post(url, data=json.dumps(data)).content
+            res = requests.post(url, data=json.dumps(data))
+            print(res.text)
+            json_data = json.loads(res.content)
+            if json_data.get('code') == 0:
+                return
+            raise ValueError('tencent transform callback failed')
         except Exception as e:
             raise e
     else:
