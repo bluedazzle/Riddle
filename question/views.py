@@ -111,20 +111,12 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         return self.user.daily_reward_count
 
     def transform_event_handler(self):
-        print(self.user.create_time)
-        print(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60))
-        print(timezone.localtime())
-        print(timezone.localtime(self.user.create_time))
-        print(timezone.localtime(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)))
-        print((self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)).day)
-        print(timezone.localtime().day)
-        print(timezone.localtime(self.user.create_time).day)
         if self.user.current_level == 2:
             handle_activate_event(self.user)
         elif self.user.current_level == 16:
             handle_pay_event(self.user)
         if self.user.twice_tag == False and \
-                (self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)).day == timezone.localtime().day:
+                (timezone.localtime(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60))).day == timezone.localtime().day:
             self.user.twice_tag = True
             self.user.save()
             handle_twice_event(self.user)
