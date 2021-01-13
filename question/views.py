@@ -117,6 +117,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if self.event_lock.locked():
             return
         self.event_lock.acquire()
+        print("enter lock region")
         if self.user.current_level == 2:
             handle_activate_event(self.user)
         elif self.user.current_level == 16:
