@@ -64,7 +64,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     pk_url_kwarg = 'qid'
     count = 32
     conf = {}
-    event_lock = None
+    answer_lock = None
 
     def add_event(self):
         event = ObjectEvent()
@@ -113,10 +113,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         return self.user.daily_reward_count
 
     def transform_event_handler(self):
-        self.event_lock = Lock(client_redis_riddle, self.user.token, DEFAULT_LOCK_TIMEOUT)
-        if self.event_lock.locked():
-            return
-        self.event_lock.acquire()
         print("enter lock region")
         if self.user.current_level == 2:
             handle_activate_event(self.user)
@@ -127,10 +123,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.twice_tag = True
             self.user.save()
             handle_twice_event(self.user)
-        self.event_lock.release()
 
     @transaction.atomic()
     def get(self, request, *args, **kwargs):
+        self.answer_lock = Lock(client_redis_riddle, self.user.token, DEFAULT_LOCK_TIMEOUT)
+        if self.answer_lock.locked():
+            return self.render_to_response()
+        self.answer_lock.acquire()
         reward_count = DEFAULT_REWARD_COUNT
         version = int(request.GET.get('version', 0))
         if version >= 20100301:
@@ -148,6 +147,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         aid = int(request.GET.get('answer', 0))
         if self.user.current_level != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
+            self.answer_lock.release()
             return self.render_to_response()
 
         rand_num = random.random() * (high_range - low_range) + low_range
@@ -168,6 +168,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
                                 self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
             video = True
+        self.transform_event_handler()
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
@@ -177,6 +178,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
                 self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
+            self.answer_lock.release()
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
@@ -203,7 +205,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.user.current_level += 1
         self.user.save()
         self.add_event()
-        self.transform_event_handler()
+        self.answer_lock.release()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video,
              'continue': self.user.continue_count})
