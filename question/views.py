@@ -14,12 +14,13 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from django.utils import timezone
+from redis.lock import Lock
 
 from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, \
     DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD, \
-    NEW_VERSION_REWARD_COUNT, DEFAULT_QUESTION_NUMBER
+    NEW_VERSION_REWARD_COUNT, DEFAULT_QUESTION_NUMBER, DEFAULT_LOCK_TIMEOUT
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -63,6 +64,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     pk_url_kwarg = 'qid'
     count = 32
     conf = {}
+    event_lock = None
 
     def add_event(self):
         event = ObjectEvent()
@@ -111,6 +113,10 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         return self.user.daily_reward_count
 
     def transform_event_handler(self):
+        self.event_lock = Lock(client_redis_riddle, self.user.token, DEFAULT_LOCK_TIMEOUT)
+        if self.event_lock.locked():
+            return
+        self.event_lock.acquire()
         if self.user.current_level == 2:
             handle_activate_event(self.user)
         elif self.user.current_level == 16:
@@ -120,6 +126,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.twice_tag = True
             self.user.save()
             handle_twice_event(self.user)
+        self.event_lock.release()
 
     @transaction.atomic()
     def get(self, request, *args, **kwargs):
