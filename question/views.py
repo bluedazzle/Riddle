@@ -114,8 +114,11 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         print(self.user.create_time)
         print(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60))
         print(timezone.localtime())
+        print(timezone.localtime(self.user.create_time))
+        print(timezone.localtime(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)))
         print((self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60)).day)
         print(timezone.localtime().day)
+        print(timezone.localtime(self.user.create_time).day)
         if self.user.current_level == 2:
             handle_activate_event(self.user)
         elif self.user.current_level == 16:
