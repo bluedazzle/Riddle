@@ -136,7 +136,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
 
             UserSingerCount.objects.bulk_create(user_singer_count_list)
 
-        task_list = list()
+        daily_task = list()
 
         for task_conf in daily_task_config:
             target = self.format_target(getattr(self.user, task_conf.get("target")))
@@ -146,11 +146,15 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
             if task_conf.get("slug") == "DAILY_CONTINUE_COUNT":
                 task = create_task(self.user, target, task_conf.get("slug"), title,
                                    **task_conf.get("detail")[daily_continue_count_stage])
-                task_list.append(task)
+                task["stage"] = daily_continue_count_stage
+                daily_task.append(task)
             else:
                 for itm in task_conf.get("detail"):
                     task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
-                    task_list.append(task)
+                    daily_task.append(task)
+
+        singer_task = list()
+        common_task = list()
 
         for task_conf in common_task_config:
             title = task_conf.get("title")
@@ -162,7 +166,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
 
                     task = create_task(self.user, target, task_conf.get("slug"), title, **task_conf["detail"][singer_id])
 
-                    task_list.append(task)
+                    singer_task.append(task)
             else:
                 target = self.format_target(getattr(self.user, task_conf.get("target")))
 
@@ -170,9 +174,9 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                     task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
                     if task.get("status") == TASK_OK:
                         pass
-                    task_list.append(task)
+                    common_task.append(task)
 
-        return self.render_to_response({"task_list": task_list})
+        return self.render_to_response({"daily_task": daily_task, "singer_task": singer_task, "common_task": common_task})
 
 
 class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
