@@ -28,16 +28,7 @@ SECRET_KEY = '+matthg$w)x_5#ax0uug(jdy0)@^5(a)%w6mr$bmbcsac-n7x4'
 DEBUG = 'True'
 
 ALLOWED_HOSTS = [
-    'nginx',
-    '127.0.0.1',
-    'localhost',
-    'g.rapo.cc',
-    '192.168.1.98',
-    'n.rapo.cc',
-    '202.112.237.65',
-    'app.guess-song.plutus-cat.com',
-    'tapp.guess-song.plutus-cat.com',
-    '172.16.1.58'
+    '*'
 ]
 
 # Application definition

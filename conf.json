@@ -1,19 +1,40 @@
-[
-  {"task_slug": "TASK_GUSS_RIGHT",
-    "task_type": "REPEAT",
-    "task_target": "daily_right_count",
-    "task_detail": [
-      {"level": 5, "reward": 2000, "reward_type": "COIN"},
-      {"level": 10, "reward": 3000, "reward_type": "COIN"},
-      {"level": 30, "reward": 5000, "reward_type": "COIN"},
-      {"level": 60, "reward": 10000, "reward_type": "COIN"}
-    ]
+{
+  "receiver": "pager",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "high_load",
+        "instance": "node-exporter:9100",
+        "job": "node",
+        "monitor": "my-project",
+        "severity": "page"
+      },
+      "annotations": {
+        "description": "node-exporter:9100 of job node is under high load.",
+        "summary": "Instance node-exporter:9100 under high load"
+      },
+      "startsAt": "2021-01-13T12:08:31.656129563Z",
+      "endsAt": "2021-01-13T12:11:16.656129563Z",
+      "generatorURL": "http://18e9c8cd9f54:9090/graph?g0.expr=node_load1+%3E+0.8\\u0026g0.tab=1"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "high_load"
   },
-  {"task_slug": "TASK_WITHDRAW",
-    "task_type": "ACTION",
-    "task_target": "daily_withdraw",
-    "task_detail": [
-      {"level": true, "reward": 5000, "reward_type": "COIN"}
-    ]
-  }
-]
+  "commonLabels": {
+    "alertname": "high_load",
+    "instance": "node-exporter:9100",
+    "job": "node",
+    "monitor": "my-project",
+    "severity": "page"
+  },
+  "commonAnnotations": {
+    "description": "node-exporter:9100 of job node is under high load.",
+    "summary": "Instance node-exporter:9100 under high load"
+  },
+  "externalURL": "http://25edf4657a9b:9093",
+  "version": "4",
+  "groupKey": "{}:{alertname="
+}
