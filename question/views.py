@@ -43,7 +43,7 @@ class FetchQuestionView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         if self.kwargs.get(self.pk_url_kwarg, None):
             obj = super(FetchQuestionView, self).get_object(queryset)
         else:
-            current_level = self.user.current_leve
+            current_level = self.user.current_level
             current_level = current_level < 1229 and current_level or current_level % 1229 + 1
             objs = self.model.objects.filter(order_id=current_level).all()
             if objs.exists():
@@ -145,7 +145,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
 
         obj = self.get_object()
         aid = int(request.GET.get('answer', 0))
-        current_level = self.user.current_leve
+        current_level = self.user.current_level
         current_level = current_level < 1229 and current_level or current_level % 1229 + 1
         if current_level != obj.order_id:
             self.update_status(StatusCode.ERROR_QUESTION_ORDER)
@@ -176,8 +176,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.reward_count = 0
             client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
             self.user.continue_count = 0
-            if self.user.current_level == 1230:
-                self.user.current_level = 0
             self.user.current_level += 1
             self.user.save()
             self.answer_lock.release()
@@ -201,8 +199,6 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > reward_count:
             self.user.reward_count -= reward_count
-        if self.user.current_level == 1230:
-            self.user.current_level = 0
         self.daily_rewards_handler()
         self.user.current_level += 1
         self.user.save()
