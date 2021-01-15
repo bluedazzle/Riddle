@@ -100,6 +100,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
     @staticmethod
     def get_common_task_config():
         conf = get_common_task_config_from_cache()
+        conf = None
         if not conf:
             obj = TaskConf.objects.all()[0]
             conf = obj.common_task_config
@@ -110,6 +111,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
     @staticmethod
     def get_daily_task_config():
         conf = get_daily_task_config_from_cache()
+        conf = None
         if not conf:
             obj = TaskConf.objects.all()[0]
             conf = obj.daily_task_config
