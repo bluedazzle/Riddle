@@ -37,7 +37,11 @@ class ClickEventView(StatusWrapMixin, JsonResponseMixin, DetailView):
         channel = request.GET.get('channel', 'default')
         callback = request.GET.get('callback', 'callback')
         android_id = request.GET.get('android_id', 'android_id')
+        if android_id == 'android_id':
+            android_id = request.GET.get('hash_android_id', 'android_id')
         imei = request.GET.get('imei', 'imei')
+        if imei == 'imei':
+            imei = request.GET.get('muid', 'imei')
         oaid = request.GET.get('oaid', 'oaid')
         mac = request.GET.get('mac', 'mac')
         if callback == 'callback' and imei == 'imei' and oaid == 'oaid':

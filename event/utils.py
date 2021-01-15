@@ -1,5 +1,6 @@
 # coding: utf-8
 import requests
+import json
 
 from django.db.models import Q
 from django.utils import timezone
@@ -7,6 +8,18 @@ from django.utils import timezone
 from account.models import User
 from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_REGISTER, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
+
+def transform_type_to_str(type: int):
+    if type == EVENT_TRANSFORM_ACTIVATE:
+        return 'ACTIVATE_APP'
+    elif type == EVENT_TRANSFORM_REGISTER:
+        return 'REGISTER'
+    elif type == EVENT_TRANSFORM_PAY:
+        return 'PURCHASE'
+    elif type == EVENT_TRANSFORM_TWICE:
+        return 'START_APP'
+    else:
+        return ''
 
 def transform_blank_to_zero(user: User):
     if user.android_id == '':
@@ -43,6 +56,32 @@ def handle_transform_event(event: ClickEvent, type):
             if json_data.get('result') == 1:
                 return
             raise ValueError('kuaishou transform callback failed')
+        except Exception as e:
+            raise e
+    if event.company == 'tencent':
+        url = '{0}'.format(event.callback)
+        headers = {
+            'Content-Type': 'application/json',
+            'cache-control': 'no-cache'
+        }
+        action_type = transform_type_to_str(type)
+        data = {'actions': [{
+            'user_id': {
+                'hash_imei': event.imei,
+                'hash_android_id': event.android_id,
+                'oaid': event.oaid
+            },
+            'action_type': action_type
+        }]}
+        # print(url)
+        try:
+            # res = requests.Request('POST', url, headers=headers, data=json.dumps(data))
+            # print(res.prepare().method, res.prepare().url, res.prepare().headers, res.prepare().body)
+            res = requests.post(url, headers=headers, data=json.dumps(data)).content
+            json_data = json.loads(res)
+            if json_data.get('code') == 0:
+                return
+            raise ValueError('tencent transform callback failed')
         except Exception as e:
             raise e
     else:
