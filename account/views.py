@@ -135,7 +135,7 @@ class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, 
 
         user_singer_count_list = []
         for i in range(3):
-            user_singer_count_list.append(UserSingerCount(user_id=self.user.id, singer_id=i))
+            user_singer_count_list.append(UserSingerCount(user_id=user.id, singer_id=i))
 
         UserSingerCount.objects.bulk_create(user_singer_count_list)
 
