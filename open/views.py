@@ -13,7 +13,7 @@ import requests
 from prometheus_client import Counter, Histogram
 
 # 第三个列表定义参数 inc 用来加一
-c = Counter('my_requests_total', 'HTTP Failures', ['method', 'endpoint'])
+c = Counter('my_requests_total_test_total', 'test', ['method', 'endpoint'])
 
 class Test(View, JsonResponseMixin):
     def get(self, request, *args, **kwargs):
