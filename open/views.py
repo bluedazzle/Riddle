@@ -10,20 +10,13 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 import json
 import requests
 
+from prometheus_client import Counter, Histogram
+
+# 第三个列表定义参数 inc 用来加一
+c = Counter('my_requests_total', 'HTTP Failures', ['method', 'endpoint'])
 
 class Test(View, JsonResponseMixin):
     def get(self, request, *args, **kwargs):
-        for i in range(100):
-            a = i + 1
-            que = Question()
-            que.title = '第{0}题'.format(a)
-            que.order_id = a
-            que.type = 1
-            que.right_answer_id = 1
-            que.wrong_answer_id = 2
-            que.right_answer = 'xxx'
-            que.wrong_answer = 'aaa'
-            que.resource_url = 'aaa.xxx'
-            que.save()
-
+        c.labels('get', '/').inc()
+        c.labels('post', '/submit').inc()
         return self.render_to_response()
