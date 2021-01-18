@@ -187,7 +187,8 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                         pass
                     common_task.append(task)
 
-        return self.render_to_response({"daily_task": daily_task, "singer_task": singer_task, "common_task": common_task})
+        return self.render_to_response({"daily_task": daily_task, "singer_task": singer_task,
+                                        "common_task": common_task, "daily_reward_amount": self.user.daily_reward_amount})
 
 
 class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
