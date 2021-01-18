@@ -168,7 +168,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                     target = user_singer_count.right_count
                     singer_id = user_singer_count.singer_id
 
-                    if singer_id > len(task_conf["detail"]):
+                    if singer_id >= len(task_conf["detail"]):
                         continue
 
                     task = create_task(self.user, target, task_conf.get("slug"), title, **task_conf["detail"][singer_id])
