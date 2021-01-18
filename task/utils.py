@@ -98,6 +98,7 @@ def draw(user: User, cash):
     cash_record.status = STATUS_REVIEW
     cash_record.reason = '审核中'
     cash_record.trade_no = suid
+    cash_record.cash = cash
     resp = send_money_by_open_id(suid, user.wx_open_id, cash)
 
     if resp.get('result_code') == 'SUCCESS':
