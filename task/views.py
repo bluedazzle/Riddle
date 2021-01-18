@@ -14,7 +14,7 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
     get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id_by_cache, \
     set_task_id_to_cache
-from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON
+from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
 from account.models import UserSingerCount
@@ -151,6 +151,10 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                     task = create_task(self.user, target, task_conf.get("slug"), title,
                                        **task_conf.get("detail")[i])
                     task["stage"] = i
+
+                    if task["status"] == TASK_FINISH:
+                        task["current_level"] = task["level"]
+
                     daily_task.append(task)
             else:
                 for itm in task_conf.get("detail"):
