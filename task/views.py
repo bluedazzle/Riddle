@@ -145,7 +145,10 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
             title = task_conf.get("title")
             daily_continue_count_stage = self.user.daily_continue_count_stage
 
-            if task_conf.get("slug") == "DAILY_CONTINUE_COUNT" and daily_continue_count_stage <= len(task_conf.get("detail")):
+            if task_conf.get("slug") == "DAILY_CONTINUE_COUNT":
+                if daily_continue_count_stage > len(task_conf.get("detail")):
+                    continue
+
                 for i in range(daily_continue_count_stage, len(task_conf.get("detail"))):
                     task = create_task(self.user, target, task_conf.get("slug"), title,
                                        **task_conf.get("detail")[i])
