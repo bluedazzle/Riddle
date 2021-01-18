@@ -86,6 +86,9 @@ def create_task_history(task_id, user_id, slug, task_type=TASK_TYPE_DAILY, **kwa
 
 
 def draw(user: User, cash):
+    if user.wx_open_id == '':
+        raise ValueError('绑定微信后提现')
+
     uid = str(uuid.uuid1())
     suid = ''.join(uid.split('-'))
 
@@ -95,17 +98,15 @@ def draw(user: User, cash):
     cash_record.status = STATUS_REVIEW
     cash_record.reason = '审核中'
     cash_record.trade_no = suid
-    # todo 任务里最高可以领十块钱 这里需要改下
-    if cash == 30:
-        resp = send_money_by_open_id(suid, user.wx_open_id, cash)
+    resp = send_money_by_open_id(suid, user.wx_open_id, cash)
 
-        if resp.get('result_code') == 'SUCCESS':
-            cash_record.reason = '成功'
-            cash_record.status = STATUS_FINISH
-        else:
-            fail_message = resp.get('err_code_des', 'default_error')
-            cash_record.reason = fail_message
-            cash_record.status = STATUS_FAIL
+    if resp.get('result_code') == 'SUCCESS':
+        cash_record.reason = '成功'
+        cash_record.status = STATUS_FINISH
+    else:
+        fail_message = resp.get('err_code_des', 'default_error')
+        cash_record.reason = fail_message
+        cash_record.status = STATUS_FAIL
 
     cash_record.save()
 
