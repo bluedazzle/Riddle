@@ -195,7 +195,10 @@ class CreateCashRecordView(CheckTokenMixin, StatusWrapMixin, JsonRequestMixin, F
         if self.withdraw_chance:
             self.withdraw_chance.save()
         if self.withdraw_lock:
-            self.withdraw_lock.release()
+            try:
+                self.withdraw_lock.release()
+            except Exception as e:
+                logging.exception(e)
         return self.render_to_response(dict())
 
 
