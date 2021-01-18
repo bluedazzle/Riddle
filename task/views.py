@@ -301,6 +301,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             slug = request.POST.get('slug')
 
             if (slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
+                self.update_status(StatusCode.ERROR_TASK_WITHDRAW)
                 return self.render_to_response(extra={'error': '请绑定微信后提现'})
 
             self.get_task_type(slug)
