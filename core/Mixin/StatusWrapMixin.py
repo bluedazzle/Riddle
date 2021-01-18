@@ -77,6 +77,7 @@ class StatusCode(ChoiceBase):
 
     ERROR_TASK_FINISHED = 5001
     ERROR_TASK_NOT_EXIST = 5002
+    ERROR_TASK_WITHDRAW = 5003
 
     __choices__ = (
         (INFO_SUCCESS, u'成功'),
@@ -110,6 +111,7 @@ class StatusCode(ChoiceBase):
         (ERROR_TASK_FINISHED, u'任务已完成'),
         (ERROR_TASK_NOT_EXIST, u'任务不存在'),
         (ERROR_API_PERMISSION_DENIED, u'应用未授权或已过期'),
+        (ERROR_TASK_WITHDRAW, u'请绑定微信后提现'),
     )
 
 
