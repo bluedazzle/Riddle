@@ -267,9 +267,10 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
                 raise ValueError('任务未完成')
 
             max_singer_id = UserSingerCount.objects.filter(user_id=self.user.id).order_by('-singer_id')[0].singer_id
-            user_singer.right_count = 0
-            user_singer.singer_id = max_singer_id + 1
-            user_singer.save()
+            if max_singer_id < 7:
+                user_singer.right_count = 0
+                user_singer.singer_id = max_singer_id + 1
+                user_singer.save()
         elif slug == "DAILY_CONTINUE_COUNT":
             if self.user.continue_count < task.get('level'):
                 raise ValueError('任务未完成')
