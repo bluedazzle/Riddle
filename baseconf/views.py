@@ -19,8 +19,6 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = GlobalConf
     slug_field = 'token'
 
-    exclude_attr = ['allow_cash_right_number']
-
     @staticmethod
     def format_list(json_format):
         ret_list = []
