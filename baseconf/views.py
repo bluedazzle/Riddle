@@ -72,6 +72,7 @@ class ABTestDemoView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponse
         return 'experiment group'
 
     def get(self, request, *args, **kwargs):
+        division_by_zero = 1 / 0
         # pre
         result = self.ab_test_handle(slug='test1')
         # post

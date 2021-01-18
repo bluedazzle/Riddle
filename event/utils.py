@@ -9,6 +9,7 @@ from account.models import User
 from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_REGISTER, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
 
+
 def transform_type_to_str(type: int):
     if type == EVENT_TRANSFORM_ACTIVATE:
         return 'ACTIVATE_APP'
@@ -20,6 +21,7 @@ def transform_type_to_str(type: int):
         return 'START_APP'
     else:
         return ''
+
 
 def transform_blank_to_zero(user: User):
     if user.android_id == '':
@@ -40,6 +42,7 @@ def transform_blank_to_zero(user: User):
         mac = user.mac
     return android_id, imei, oaid, mac
 
+
 def handle_transform_event(event: ClickEvent, type):
     if event.company == 'kuaishou':
         time = timezone.localtime().microsecond
@@ -48,7 +51,7 @@ def handle_transform_event(event: ClickEvent, type):
         else:
             pay_amount = 0
         url = '{0}&event_type={1}&event_time={2}&purchase_amount={3}'. \
-            format(event.callback, type+1, time, pay_amount)
+            format(event.callback, type + 1, time, pay_amount)
         # print(url)
         try:
             resp = requests.get(url, timeout=3)
@@ -86,7 +89,7 @@ def handle_transform_event(event: ClickEvent, type):
             raise e
     else:
         signature = 'wRZHhuS-UsgJh-KNr-mGHpYgoJjXKSXWE'
-        url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'.\
+        url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'. \
             format(event.callback, event.imei, event.oaid, type, signature)
         # print(url)
         try:
@@ -97,6 +100,7 @@ def handle_transform_event(event: ClickEvent, type):
             raise ValueError(json_data.get('msg'))
         except Exception as e:
             raise e
+
 
 def handle_activate_event(user: User):
     model = TransformEvent
@@ -122,6 +126,7 @@ def handle_activate_event(user: User):
     handle_transform_event(objs[0], EVENT_TRANSFORM_REGISTER)
     return
 
+
 def handle_pay_event(user: User):
     model = TransformEvent
     android_id, imei, oaid, mac = transform_blank_to_zero(user)
@@ -138,6 +143,7 @@ def handle_pay_event(user: User):
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_PAY)
     return
+
 
 def handle_twice_event(user: User):
     model = TransformEvent
