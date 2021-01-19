@@ -70,3 +70,16 @@ class RedPacket(ExportModelOperationsMixin("RedPacket"), BaseModel):
 
     def __str__(self):
         return '{0}-{1} {2}'.format(self.belong.name, self.amount, self.create_time)
+
+
+class GameCashRecord(ExportModelOperationsMixin("GameCashRecord"), BaseModel):
+    game_name = models.CharField(max_length=128, default='default')
+    percentage = models.IntegerField(default=100)
+    cash = models.IntegerField()
+    belong = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __unicode__(self):
+        return '{0}'.format(self.belong.name, self.game_name, self.percentage)
+
+    def __str__(self):
+        return '{0}'.format(self.belong.name, self.game_name, self.percentage)

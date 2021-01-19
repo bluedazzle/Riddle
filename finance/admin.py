@@ -26,5 +26,12 @@ class RedPacketAdmin(admin.ModelAdmin):
     form = UserForm
 
 
+class GameCashAdmin(admin.ModelAdmin):
+    list_display = ('belong', 'cash', 'create_time', 'game_name', 'percentage')
+    search_fields = ('belong',)
+    form = UserForm
+
+
 admin.site.register(CashRecord, CashRecordAdmin)
 admin.site.register(RedPacket, RedPacketAdmin)
+admin.site.register(GameCashRecord, GameCashAdmin)
