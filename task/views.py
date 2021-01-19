@@ -8,13 +8,13 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.views.generic import DetailView, View
-
+from redis.lock import Lock
 from baseconf.models import TaskConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
     get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id_by_cache, \
-    set_task_id_to_cache
-from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH
+    set_task_id_to_cache, client_redis_riddle
+from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH, DEFAULT_LOCK_TIMEOUT
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
 from account.models import UserSingerCount
@@ -193,6 +193,7 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
 
 class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
     task_type = TASK_TYPE_DAILY
+    task_lock = None
 
     def valid_task(self, slug, task_id):
         if search_task_id_by_cache(task_id):
@@ -300,6 +301,11 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
 
     @transaction.atomic()
     def post(self, request, *args, **kwargs):
+        self.task_lock = Lock(client_redis_riddle, str(self.user.id) + "valid", DEFAULT_LOCK_TIMEOUT)
+        if self.task_lock.locked():
+            return self.render_to_response()
+        self.task_lock.acquire()
+
         try:
             task_id = request.POST.get("task_id")
             slug = request.POST.get('slug')
@@ -312,12 +318,15 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             self.valid_task(slug, task_id)
             amount, reward_type = self.send_reward(slug, task_id)
             self.create_task_history(task_id, slug)
+            self.task_lock.release()
             return self.render_to_response(
                 {"coin": self.user.coin, "cash": self.user.cash, 'amount': amount, 'reward_type': reward_type})
         except ValueError as e:
             logging.exception(e)
+            self.task_lock.release()
             return self.render_to_response(extra={'error': str(e)})
         except Exception as e:
             logging.exception(e)
             self.update_status(StatusCode.ERROR_DATA)
-            return self.render_to_response()
+            self.task_lock.release()
+            return self.render_to_response(extra={'error': str(e)})
