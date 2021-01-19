@@ -303,6 +303,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
     def post(self, request, *args, **kwargs):
         self.task_lock = Lock(client_redis_riddle, str(self.user.id) + "valid", DEFAULT_LOCK_TIMEOUT)
         if self.task_lock.locked():
+            self.update_status(StatusCode.ERROR_TASK_CLICK)
             return self.render_to_response()
         self.task_lock.acquire()
 
