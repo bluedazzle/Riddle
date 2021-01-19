@@ -11,10 +11,13 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+import sentry_sdk
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from core.cache import config_client_redis_zhz, config_redis_ab_test
 from core.utils import conf
+from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -163,6 +166,16 @@ CORS_ALLOWED_ORIGINS = ["http://cai-ta.ecdn.plutus-cat.com",
                         "https://cai-ta.ecdn.plutus-cat.com",
                         "http://appweb.ecdn.plutus-cat.com",
                         "https://appweb.ecdn.plutus-cat.com"]
+
+sentry_sdk.init(
+    dsn="https://3b50df6398fc4ccd88402033f52366eb@o73389.ingest.sentry.io/5596553",
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True
+)
 
 
 # init dependency

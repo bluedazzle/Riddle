@@ -20,7 +20,7 @@ def get_global_conf():
     global_conf = get_global_config_from_cache()
     if not global_conf:
         obj = GlobalConf.objects.all()[0]
-        global_conf = serializer(obj, output_type='json', exclude_attr=['create_time', 'modify_time'])
+        global_conf = serializer(obj, output_type='json', exclude_attr=['create_time', 'modify_time', 'allow_cash_right_number'])
         set_global_config_to_cache(global_conf)
     return json.loads(global_conf)
 

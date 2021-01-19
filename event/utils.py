@@ -1,5 +1,6 @@
 # coding: utf-8
 import requests
+import json
 
 from django.db.models import Q
 from django.utils import timezone
@@ -7,6 +8,20 @@ from django.utils import timezone
 from account.models import User
 from core.consts import EVENT_TRANSFORM_ACTIVATE, EVENT_TRANSFORM_REGISTER, EVENT_TRANSFORM_PAY, EVENT_TRANSFORM_TWICE
 from event.models import ClickEvent, TransformEvent
+
+
+def transform_type_to_str(type: int):
+    if type == EVENT_TRANSFORM_ACTIVATE:
+        return 'ACTIVATE_APP'
+    elif type == EVENT_TRANSFORM_REGISTER:
+        return 'REGISTER'
+    elif type == EVENT_TRANSFORM_PAY:
+        return 'PURCHASE'
+    elif type == EVENT_TRANSFORM_TWICE:
+        return 'START_APP'
+    else:
+        return ''
+
 
 def transform_blank_to_zero(user: User):
     if user.android_id == '':
@@ -27,6 +42,7 @@ def transform_blank_to_zero(user: User):
         mac = user.mac
     return android_id, imei, oaid, mac
 
+
 def handle_transform_event(event: ClickEvent, type):
     if event.company == 'kuaishou':
         time = timezone.localtime().microsecond
@@ -35,7 +51,7 @@ def handle_transform_event(event: ClickEvent, type):
         else:
             pay_amount = 0
         url = '{0}&event_type={1}&event_time={2}&purchase_amount={3}'. \
-            format(event.callback, type+1, time, pay_amount)
+            format(event.callback, type + 1, time, pay_amount)
         # print(url)
         try:
             resp = requests.get(url, timeout=3)
@@ -45,9 +61,35 @@ def handle_transform_event(event: ClickEvent, type):
             raise ValueError('kuaishou transform callback failed')
         except Exception as e:
             raise e
+    if event.company == 'tencent':
+        url = '{0}'.format(event.callback)
+        headers = {
+            'Content-Type': 'application/json',
+            'cache-control': 'no-cache'
+        }
+        action_type = transform_type_to_str(type)
+        data = {'actions': [{
+            'user_id': {
+                'hash_imei': event.imei,
+                'hash_android_id': event.android_id,
+                'oaid': event.oaid
+            },
+            'action_type': action_type
+        }]}
+        # print(url)
+        try:
+            # res = requests.Request('POST', url, headers=headers, data=json.dumps(data))
+            # print(res.prepare().method, res.prepare().url, res.prepare().headers, res.prepare().body)
+            res = requests.post(url, headers=headers, data=json.dumps(data)).content
+            json_data = json.loads(res)
+            if json_data.get('code') == 0:
+                return
+            raise ValueError('tencent transform callback failed')
+        except Exception as e:
+            raise e
     else:
         signature = 'wRZHhuS-UsgJh-KNr-mGHpYgoJjXKSXWE'
-        url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'.\
+        url = '{0}&imei={1}&oaid={2}&event_type={3}&signature={4}'. \
             format(event.callback, event.imei, event.oaid, type, signature)
         # print(url)
         try:
@@ -58,6 +100,7 @@ def handle_transform_event(event: ClickEvent, type):
             raise ValueError(json_data.get('msg'))
         except Exception as e:
             raise e
+
 
 def handle_activate_event(user: User):
     model = TransformEvent
@@ -83,6 +126,7 @@ def handle_activate_event(user: User):
     handle_transform_event(objs[0], EVENT_TRANSFORM_REGISTER)
     return
 
+
 def handle_pay_event(user: User):
     model = TransformEvent
     android_id, imei, oaid, mac = transform_blank_to_zero(user)
@@ -99,6 +143,7 @@ def handle_pay_event(user: User):
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_PAY)
     return
+
 
 def handle_twice_event(user: User):
     model = TransformEvent

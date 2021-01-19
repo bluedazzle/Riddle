@@ -19,8 +19,6 @@ class GlobalConfView(StatusWrapMixin, JsonResponseMixin, DetailView):
     model = GlobalConf
     slug_field = 'token'
 
-    exclude_attr = ['allow_cash_right_number']
-
     @staticmethod
     def format_list(json_format):
         ret_list = []
@@ -72,6 +70,7 @@ class ABTestDemoView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponse
         return 'experiment group'
 
     def get(self, request, *args, **kwargs):
+        division_by_zero = 1 / 0
         # pre
         result = self.ab_test_handle(slug='test1')
         # post
