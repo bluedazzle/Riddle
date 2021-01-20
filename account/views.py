@@ -22,7 +22,7 @@ from django.views.generic import FormView
 from account.forms import VerifyCodeForm, ValidateVerifyCodeForm
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
-from account.models import User
+from account.models import User, UserSingerCount
 from core.sms import send_sms_by_phone
 from core.wx import get_access_token_by_code, get_user_info, send_money_by_open_id
 from core.consts import DEFAULT_SONGS_BONUS_THRESHOLD, STATUS_REVIEW, STATUS_FINISH, STATUS_FAIL
@@ -39,7 +39,7 @@ class UserInfoView(CheckTokenMixin, StatusWrapMixin, MultipleJsonResponseMixin, 
     datetime_type = 'timestamp'
     http_method_names = ['get']
     exclude_attr = ['daily_sign_in_token', 'daily_sign_in', 'daily_watch_ad', 'daily_withdraw', 'daily_lucky_draw',
-                    'daily_coin_exchange', 'daily_reward_modify']
+                    'daily_coin_exchange', 'daily_reward_modify', 'daily_reward_stage']
 
     def daily_rewards_handler(self):
         if not self.user:
@@ -131,6 +131,13 @@ class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, 
         # user.invite_code = invite_code
         user.app_id = self.app.app_id
         user.save()
+
+        user_singer_count_list = []
+        for i in range(3):
+            user_singer_count_list.append(UserSingerCount(user_id=user.id, singer_id=i))
+
+        UserSingerCount.objects.bulk_create(user_singer_count_list)
+
         return self.render_to_response({'user': user})
 
     @staticmethod

@@ -11,6 +11,7 @@ import logging
 import datetime
 
 from django.db import transaction
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.generic import DetailView
 from django.utils import timezone
@@ -25,10 +26,10 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
 from event.models import ObjectEvent
-from question.models import Question
-from account.models import User
+from question.models import Question, Song
+from account.models import User, UserSingerCount
 from core.Mixin.ABTestMixin import ABTestMixin
-from task.utils import daily_task_attr_reset, update_task_attr
+from task.utils import daily_task_attr_reset, update_task_attr, get_singer_id
 from event.utils import handle_activate_event, handle_pay_event, handle_twice_event
 
 
@@ -173,6 +174,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
             self.user.reward_count = 0
+
             client_redis_riddle.set(str(self.user.id) + 'continue', self.user.continue_count)
             self.user.continue_count = 0
             if self.user.current_level == 1230:
@@ -184,12 +186,17 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
+        singer_id = get_singer_id(obj.singer)
+
+        if singer_id != -1:
+            UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(right_count=F('right_count') + 1)
+
         if self.user.current_step + 1 == round_count:
             self.user.current_step = 0
         self.user.current_step += 1
         self.user.right_count += 1
         self.user.reward_count += 1
-        self.user.continue_count = min(199, self.user.continue_count + 1)
+        self.user.continue_count += 1
         self.user.cash += cash
         reward = False
         reward_url = ''
