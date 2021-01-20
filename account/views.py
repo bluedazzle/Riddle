@@ -119,6 +119,7 @@ class UserRegisterView(CheckTokenMixin, StatusWrapMixin, FormJsonResponseMixin, 
         user.device_id = device_id
         user.channel = channel
         user.version = version
+        user.daily_continue_count_stage = 0
         user.token = self.create_token()
         user.name = self.create_name()
         user.daily_sign_in = 1
