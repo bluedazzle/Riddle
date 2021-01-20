@@ -245,7 +245,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             title = task.get("title")
 
             if task.get("slug") == "DAILY_CONTINUE_COUNT":
-                task = create_task(self.user, 0, task.get("slug"), title, task.get("detail")[self.user.daily_continue_count_stage])
+                task = create_task(self.user, 0, task.get("slug"), title, **task.get("detail")[self.user.daily_continue_count_stage])
                 task_dict[task.get('id')] = task
                 continue
 
