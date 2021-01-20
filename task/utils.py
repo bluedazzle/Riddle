@@ -187,9 +187,9 @@ def get_singer_id(singer):
         "李宗盛": 2,
         "蒋大为": 3,
         "宋祖英": 4,
-        "毛阿敏": 5,
-        "刘德华": 6,
-        "那英": 7,
+        "王菲": 5,
+        "韩红": 6,
+        "齐秦": 7,
     }
 
     return singer_list.get(singer, -1)
