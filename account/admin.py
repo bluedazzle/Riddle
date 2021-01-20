@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelForm
 
-from account.models import User
+from account.models import User, UserSingerCount
 
 
 # Register your models here.
@@ -19,3 +19,4 @@ class UserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(User, UserAdmin)
+admin.site.register(UserSingerCount)
