@@ -247,11 +247,10 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             if task.get("slug") == "DAILY_CONTINUE_COUNT":
                 task = create_task(self.user, 0, task.get("slug"), title, **task.get("detail")[self.user.daily_continue_count_stage])
                 task_dict[task.get('id')] = task
-                continue
-
-            for itm in task.get("detail"):
-                task = create_task(self.user, 0, task.get("slug"), title, **itm)
-                task_dict[task.get('id')] = task
+            else:
+                for itm in task.get("detail"):
+                    task = create_task(self.user, 0, task.get("slug"), title, **itm)
+                    task_dict[task.get('id')] = task
         return task_dict
 
     def send_reward(self, slug, task_id):
