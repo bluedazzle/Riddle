@@ -300,7 +300,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             if task.get('level') == 90:
                 self.user.daily_sign_in = 0
                 self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0] + 1)) \
-                                                + self.user.daily_sign_in_token.split("_")[1]
+                                                + "_" + self.user.daily_sign_in_token.split("_")[1]
 
         reward = task.get('reward')
         reward_type = task.get('reward_type')
@@ -367,19 +367,19 @@ class DailySignTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     def get_last_sign_day(self):
         if len(self.user.daily_sign_in_token.split("_")) == 1:
             self.user.daily_sign_in = 0
-            self.user.daily_sign_in_token = str(1) + str(datetime.date.today() - datetime.timedelta(days=1))
+            self.user.daily_sign_in_token = "1" + "_" + str(datetime.date.today() - datetime.timedelta(days=1))
             self.user.save()
             return str(datetime.date.today() - datetime.timedelta(days=1))
         return str(self.user.daily_sign_in_token.split("_")[1])
 
     def get(self, request, *args, **kwargs):
-        daily_task_config = self.get_common_task_config()
+        common_task_config = self.get_common_task_config()
         daily_task = list()
 
         last_sign_day = self.get_last_sign_day()
         daily_sign_status = str(datetime.date.today()) == last_sign_day and 1 or 0
 
-        for task_conf in daily_task_config:
+        for task_conf in common_task_config:
             if task_conf.get("slug") == "COMMON_TASK_SIGN":
                 target = self.user.daily_sign_in
                 title = task_conf.get("title")
@@ -410,7 +410,7 @@ class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
 
         if len(self.user.daily_sign_in_token.split("_")) == 1:
             self.user.daily_sign_in = 1
-            self.user.daily_sign_in_token = str(1) + str(datetime.date.today())
+            self.user.daily_sign_in_token = str(1) + "_" + str(datetime.date.today())
             self.user.save()
 
             self.sign_lock.release()
@@ -423,7 +423,7 @@ class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             return self.render_to_response()
 
         self.user.daily_sign_in += 1
-        self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + str(datetime.date.today())
+        self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + "_" + str(datetime.date.today())
         self.user.save()
 
         self.sign_lock.release()

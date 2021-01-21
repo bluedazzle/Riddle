@@ -148,10 +148,6 @@ def daily_task_attr_reset(user: User):
         user.daily_coin_exchange = False
         user.daily_lucky_draw = False
         user.daily_withdraw = False
-        if user.daily_sign_in == 7:
-            user.daily_sign_in = 0
-            user.daily_sign_in_token = create_token()
-        user.daily_sign_in += 1
     if user.daily_reward_expire:
         if now_time > user.daily_reward_expire:
             user.daily_reward_draw = False
