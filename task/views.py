@@ -353,7 +353,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             return self.render_to_response(extra={'error': str(e)})
 
 
-class DailyTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+class DailySignTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     @staticmethod
     def get_common_task_config():
         conf = get_common_task_config_from_cache()
