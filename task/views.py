@@ -182,6 +182,8 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                                        **task_conf["detail"][singer_id])
 
                     singer_task.append(task)
+            elif task_conf.get("slug") == "COMMON_TASK_SIGN":
+                pass
             else:
                 target = self.format_target(getattr(self.user, task_conf.get("target")))
 
@@ -295,6 +297,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
                 self.user.daily_sign_in = 0
                 self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0] + 1)) \
                                                 + self.user.daily_sign_in_token.split("_")[1]
+
         reward = task.get('reward')
         reward_type = task.get('reward_type')
         user = send_reward(self.user, reward, reward_type)
@@ -323,8 +326,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             task_id = request.POST.get("task_id")
             slug = request.POST.get('slug')
 
-            if (
-                    slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
+            if (slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
                 self.update_status(StatusCode.ERROR_TASK_WITHDRAW)
                 return self.render_to_response(extra={'error': '请绑定微信后提现'})
 
@@ -348,12 +350,12 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
 
 class DailyTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     @staticmethod
-    def get_daily_task_config():
-        conf = get_daily_task_config_from_cache()
+    def get_common_task_config():
+        conf = get_common_task_config_from_cache()
         if not conf:
             obj = TaskConf.objects.all()[0]
-            conf = obj.daily_task_config
-            set_daily_task_config_to_cache(conf)
+            conf = obj.common_task_config
+            set_common_task_config_to_cache(conf)
             conf = json.loads(conf)
         return conf
 
@@ -366,14 +368,14 @@ class DailyTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
         return str(self.user.daily_sign_in_token.split("_")[1])
 
     def get(self, request, *args, **kwargs):
-        daily_task_config = self.get_daily_task_config()
+        daily_task_config = self.get_common_task_config()
         daily_task = list()
 
         last_sign_day = self.get_last_sign_day()
         daily_sign_status = str(datetime.date.today()) == last_sign_day and 1 or 0
 
         for task_conf in daily_task_config:
-            if task_conf.get("slug") == "DAILY_SIGN":
+            if task_conf.get("slug") == "COMMON_TASK_SIGN":
                 target = self.user.daily_sign_in
                 title = task_conf.get("title")
 
@@ -386,24 +388,38 @@ class DailyTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
 
 
 class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
+    sign_lock = None
+
     def get(self, request, *args, **kwargs):
+        self.sign_lock = Lock(client_redis_riddle, str(self.user.id) + "valid", DEFAULT_LOCK_TIMEOUT)
+        if self.sign_lock.locked():
+            self.update_status(StatusCode.ERROR_TASK_CLICK)
+            return self.render_to_response()
+        self.sign_lock.acquire()
+
         if self.user.daily_watch_ad < SIGN_WATCH_AD_COUNT:
             self.update_status(StatusCode.ERROR_DATA)
-            self.render_to_response()
+
+            self.sign_lock.release()
+            return self.render_to_response()
 
         if len(self.user.daily_sign_in_token.split("_")) == 1:
             self.user.daily_sign_in = 1
             self.user.daily_sign_in_token = str(1) + str(datetime.date.today())
             self.user.save()
 
+            self.sign_lock.release()
             return self.render_to_response()
 
         if self.user.daily_sign_in_token.split("_")[1] == str(datetime.date.today()):
             self.update_status(StatusCode.ERROR_TASK_FINISHED)
-            self.render_to_response()
+
+            self.sign_lock.release()
+            return self.render_to_response()
 
         self.user.daily_sign_in += 1
         self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + str(datetime.date.today())
         self.user.save()
 
+        self.sign_lock.release()
         return self.render_to_response()
