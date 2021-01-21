@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
-
 import logging
+import datetime
 
 from django.db import transaction
 from django.shortcuts import render
@@ -14,7 +14,7 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
     get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id_by_cache, \
     set_task_id_to_cache, client_redis_riddle
-from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH, DEFAULT_LOCK_TIMEOUT
+from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH, DEFAULT_LOCK_TIMEOUT, SIGN_WATCH_AD_COUNT
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
 from account.models import UserSingerCount
@@ -331,3 +331,66 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             self.update_status(StatusCode.ERROR_DATA)
             self.task_lock.release()
             return self.render_to_response(extra={'error': str(e)})
+
+
+class DailyTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    @staticmethod
+    def get_daily_task_config():
+        conf = get_daily_task_config_from_cache()
+        if not conf:
+            obj = TaskConf.objects.all()[0]
+            conf = obj.daily_task_config
+            set_daily_task_config_to_cache(conf)
+            conf = json.loads(conf)
+        return conf
+
+    def get_last_sign_day(self):
+        if len(self.user.daily_sign_in_token.split("_")) == 1:
+            self.user.daily_sign_in = 0
+            self.user.daily_sign_in_token = str(1) + str(datetime.date.today() - datetime.timedelta(days=1))
+            self.user.save()
+            return str(datetime.date.today() - datetime.timedelta(days=1))
+        return str(self.user.daily_sign_in_token.split("_")[1])
+
+    def get(self, request, *args, **kwargs):
+        daily_task_config = self.get_daily_task_config()
+        daily_task = list()
+
+        last_sign_day = self.get_last_sign_day()
+        daily_sign_status = str(datetime.date.today()) == last_sign_day and 1 or 0
+
+        for task_conf in daily_task_config:
+            if task_conf.get("slug") == "DAILY_SIGN":
+                target = self.user.daily_sign_in
+                title = task_conf.get("title")
+
+                for itm in task_conf.get("detail"):
+                    task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
+                    daily_task.append(task)
+
+        return self.render_to_response({"daily_sign_in": self.user.daily_sign_in, "daily_task": daily_task,
+                                        "daily_sign_status": daily_sign_status})
+
+
+class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
+    def get(self, request, *args, **kwargs):
+        if self.user.daily_watch_ad < SIGN_WATCH_AD_COUNT:
+            self.update_status(StatusCode.ERROR_DATA)
+            self.render_to_response()
+
+        if len(self.user.daily_sign_in_token.split("_")) == 1:
+            self.user.daily_sign_in = 1
+            self.user.daily_sign_in_token = str(1) + str(datetime.date.today())
+            self.user.save()
+
+            return self.render_to_response()
+
+        if self.user.daily_sign_in_token.split("_")[1] == str(datetime.date.today()):
+            self.update_status(StatusCode.ERROR_TASK_FINISHED)
+            self.render_to_response()
+
+        self.user.daily_sign_in += 1
+        self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + str(datetime.date.today())
+        self.user.save()
+
+        return self.render_to_response()
