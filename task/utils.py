@@ -97,15 +97,15 @@ def draw(user: User, cash):
     cash_record.reason = '审核中'
     cash_record.trade_no = suid
     cash_record.cash = cash
-    resp = send_money_by_open_id(suid, user.wx_open_id, cash)
+    # resp = send_money_by_open_id(suid, user.wx_open_id, cash)
 
-    if resp.get('result_code') == 'SUCCESS':
-        cash_record.reason = '成功'
-        cash_record.status = STATUS_FINISH
-    else:
-        fail_message = resp.get('err_code_des', 'default_error')
-        cash_record.reason = fail_message
-        cash_record.status = STATUS_FAIL
+    # if resp.get('result_code') == 'SUCCESS':
+    cash_record.reason = '成功'
+    cash_record.status = STATUS_FINISH
+    # else:
+    #     fail_message = resp.get('err_code_des', 'default_error')
+    #     cash_record.reason = fail_message
+    #     cash_record.status = STATUS_FAIL
 
     cash_record.save()
 
