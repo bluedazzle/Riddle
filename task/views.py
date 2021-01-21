@@ -293,7 +293,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
                 raise ValueError('任务未完成')
             self.user.continue_count = 0
             self.user.daily_continue_count_stage += 1
-        elif slug == "DAILY_SIGN":
+        elif slug == "COMMON_TASK_SIGN":
             if self.user.daily_sign_in_token < task.get('level'):
                 raise ValueError('任务未完成')
 
