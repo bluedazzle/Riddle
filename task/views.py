@@ -373,13 +373,13 @@ class DailySignTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
         return str(self.user.daily_sign_in_token.split("_")[1])
 
     def get(self, request, *args, **kwargs):
-        daily_task_config = self.get_common_task_config()
+        common_task_config = self.get_common_task_config()
         daily_task = list()
 
         last_sign_day = self.get_last_sign_day()
         daily_sign_status = str(datetime.date.today()) == last_sign_day and 1 or 0
 
-        for task_conf in daily_task_config:
+        for task_conf in common_task_config:
             if task_conf.get("slug") == "COMMON_TASK_SIGN":
                 target = self.user.daily_sign_in
                 title = task_conf.get("title")
