@@ -244,9 +244,13 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
         for task in conf:
             title = task.get("title")
 
-            for itm in task.get("detail"):
-                task = create_task(self.user, 0, task.get("slug"), title, **itm)
+            if task.get("slug") == "DAILY_CONTINUE_COUNT":
+                task = create_task(self.user, 0, task.get("slug"), title, **task.get("detail")[self.user.daily_continue_count_stage])
                 task_dict[task.get('id')] = task
+            else:
+                for itm in task.get("detail"):
+                    task = create_task(self.user, 0, task.get("slug"), title, **itm)
+                    task_dict[task.get('id')] = task
         return task_dict
 
     def send_reward(self, slug, task_id):
@@ -311,7 +315,8 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             task_id = request.POST.get("task_id")
             slug = request.POST.get('slug')
 
-            if (slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
+            if (slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and \
+                    (self.user.wx_open_id == '' or not self.user.wx_open_id):
                 self.update_status(StatusCode.ERROR_TASK_WITHDRAW)
                 return self.render_to_response(extra={'error': '请绑定微信后提现'})
 
