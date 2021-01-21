@@ -300,7 +300,7 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             if task.get('level') == 90:
                 self.user.daily_sign_in = 0
                 self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0] + 1)) \
-                                                + self.user.daily_sign_in_token.split("_")[1]
+                                                + "_" + self.user.daily_sign_in_token.split("_")[1]
 
         reward = task.get('reward')
         reward_type = task.get('reward_type')
@@ -367,7 +367,7 @@ class DailySignTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
     def get_last_sign_day(self):
         if len(self.user.daily_sign_in_token.split("_")) == 1:
             self.user.daily_sign_in = 0
-            self.user.daily_sign_in_token = str(1) + str(datetime.date.today() - datetime.timedelta(days=1))
+            self.user.daily_sign_in_token = "1" + "_" + str(datetime.date.today() - datetime.timedelta(days=1))
             self.user.save()
             return str(datetime.date.today() - datetime.timedelta(days=1))
         return str(self.user.daily_sign_in_token.split("_")[1])
@@ -410,7 +410,7 @@ class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
 
         if len(self.user.daily_sign_in_token.split("_")) == 1:
             self.user.daily_sign_in = 1
-            self.user.daily_sign_in_token = str(1) + str(datetime.date.today())
+            self.user.daily_sign_in_token = str(1) + "_" + str(datetime.date.today())
             self.user.save()
 
             self.sign_lock.release()
@@ -423,7 +423,7 @@ class DailySignView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             return self.render_to_response()
 
         self.user.daily_sign_in += 1
-        self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + str(datetime.date.today())
+        self.user.daily_sign_in_token = self.user.daily_sign_in_token.split("_")[0] + "_" + str(datetime.date.today())
         self.user.save()
 
         self.sign_lock.release()
