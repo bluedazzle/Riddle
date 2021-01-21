@@ -509,4 +509,4 @@ class GameVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailV
                 logging.exception(e)
         self.user.save()
 
-        return self.render_to_response()
+        return self.render_to_response({'success': True, 'cash': cash})
