@@ -38,12 +38,10 @@ def create_task(user: User, target, task_slug: str, title_template, *args, **kwa
     task_slug = task_slug.upper()
     task = {'current_level': target}
     task.update(kwargs)
-    if task_slug == 'DAILY_TASK_SIGN':
-        if not user.daily_sign_in_token:
-            user.daily_sign_in_token = create_token()
-        sign_token = user.daily_sign_in_token
-        unique_str = ','.join(
-            [str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(sign_token)])
+    if task_slug == 'COMMON_TASK_SIGN':
+        daily_sign_stage = user.daily_sign_in_token.split("_")[0]
+        unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")),
+                               str(kwargs.get("reward")), daily_sign_stage])
     elif task_slug.startswith('DAILY_'):
         date = datetime.date.today()
         unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(date)])
@@ -86,7 +84,7 @@ def create_task_history(task_id, user_id, slug, task_type=TASK_TYPE_DAILY, **kwa
 
 
 def draw(user: User, cash):
-    if user.wx_open_id == '':
+    if user.wx_open_id == '' or not user.wx_open_id:
         raise ValueError('绑定微信后提现')
 
     uid = str(uuid.uuid1())
@@ -98,6 +96,7 @@ def draw(user: User, cash):
     cash_record.status = STATUS_REVIEW
     cash_record.reason = '审核中'
     cash_record.trade_no = suid
+    cash_record.cash = cash
     resp = send_money_by_open_id(suid, user.wx_open_id, cash)
 
     if resp.get('result_code') == 'SUCCESS':
@@ -143,7 +142,7 @@ def daily_task_attr_reset(user: User):
         user.daily_right_count = 0
         user.continue_count = 0
         user.daily_continue_count_stage = 0
-        user.daily_reward_amount = 0
+        user.daily_reward_amount = 2000
         user.daily_watch_ad = 0
         user.daily_reward_modify = now_time
         user.daily_coin_exchange = False
@@ -186,9 +185,12 @@ def get_singer_id(singer):
         "李宗盛": 2,
         "蒋大为": 3,
         "宋祖英": 4,
-        "毛阿敏": 5,
-        "刘德华": 6,
+        "刘德华": 5,
+        "毛阿敏": 6,
         "那英": 7,
+        "刘若英": 8,
+        "韩磊": 9,
+        "汪峰": 10,
     }
 
     return singer_list.get(singer, -1)

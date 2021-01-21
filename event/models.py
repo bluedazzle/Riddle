@@ -20,6 +20,8 @@ class AdEvent(ExportModelOperationsMixin("AdEvent"), BaseModel):
 
 class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
     object = models.CharField(max_length=100)
+    object_id = models.IntegerField(default=0)
+    order_id = models.IntegerField(default=0)
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
     user_id = models.IntegerField(default=0)

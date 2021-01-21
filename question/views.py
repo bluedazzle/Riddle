@@ -68,10 +68,12 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
     conf = {}
     answer_lock = None
 
-    def add_event(self):
+    def add_event(self, object_id, order_id, action='ANSWER'):
         event = ObjectEvent()
         event.object = 'SONG'
-        event.action = 'ANSWER'
+        event.action = action
+        event.object_id = object_id
+        event.order_id = order_id
         event.user_id = self.user.id
         event.app_id = self.app.app_id
         event.save()
@@ -181,6 +183,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             self.user.current_level += 1
             self.user.save()
             self.answer_lock.release()
+            self.add_event(obj.id, obj.order_id, 'ANSWER_WRONG')
             return self.render_to_response(
                 {'answer': False, 'cash': 0, 'reward': False, 'reward_url': '', 'video': video, 'continue': 0})
 
@@ -199,9 +202,9 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         reward = False
         reward_url = ''
         if self.user.reward_count == reward_count:
-            obj = PageConf.objects.all()[0]
+            conf_obj = PageConf.objects.all()[0]
             reward = True
-            reward_url = obj.rewards_url
+            reward_url = conf_obj.rewards_url
             self.user.reward_count = 0
             client_redis_riddle.set(REWARD_KEY.format(self.user.id), 1, 600)
         elif self.user.reward_count > reward_count:
@@ -209,7 +212,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         self.daily_rewards_handler()
         self.user.current_level += 1
         self.user.save()
-        self.add_event()
+        self.add_event(obj.id, obj.order_id, 'ANSWER_RIGHT')
         self.answer_lock.release()
         return self.render_to_response(
             {'answer': True, 'cash': cash, 'reward': reward, 'reward_url': reward_url, 'video': video,

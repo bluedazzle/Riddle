@@ -67,7 +67,7 @@ class User(ExportModelOperationsMixin("User"), BaseModel):
 
     ab_test_id = models.CharField(max_length=100, default='')
     valid_register = models.BooleanField(default=False)
-    daily_reward_amount = models.IntegerField(default=20000)  # 今日可领取现金
+    daily_reward_amount = models.IntegerField(default=2000)  # 今日可领取现金
     daily_continue_count_stage = models.IntegerField(default=0)  # 连对任务阶段
     daily_reward_stage = models.IntegerField(default=5)  # 日常任务阶段 20/40/60/80
     daily_reward_draw = models.BooleanField(default=False)  # 是否可以抽取提现机会
@@ -98,7 +98,7 @@ class UserSingerCount(ExportModelOperationsMixin("UserSingerRightCount"), BaseMo
     user_id = models.IntegerField(default=0)
 
     def __unicode__(self):
-        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.belong.name, self.singer_id, self.right_count)
+        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.user_id, self.singer_id, self.right_count)
 
     def __str__(self):
-        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.belong.name, self.singer_id, self.right_count)
+        return '用户{0} 歌手 {1} 答对次数 {2} '.format(self.user_id, self.singer_id, self.right_count)
