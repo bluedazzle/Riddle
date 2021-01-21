@@ -84,7 +84,7 @@ def create_task_history(task_id, user_id, slug, task_type=TASK_TYPE_DAILY, **kwa
 
 
 def draw(user: User, cash):
-    if user.wx_open_id == '':
+    if user.wx_open_id == '' or not user.wx_open_id:
         raise ValueError('绑定微信后提现')
 
     uid = str(uuid.uuid1())
