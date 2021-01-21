@@ -54,7 +54,7 @@ def handle_transform_event(event: ClickEvent, type):
             format(event.callback, type + 1, time, pay_amount)
         # print(url)
         try:
-            resp = requests.get(url, timeout=3)
+            resp = requests.get(url, timeout=5)
             json_data = resp.json()
             if json_data.get('result') == 1:
                 return
@@ -74,13 +74,16 @@ def handle_transform_event(event: ClickEvent, type):
                 'hash_android_id': event.android_id,
                 'oaid': event.oaid
             },
-            'action_type': action_type
+            'action_type': action_type,
+            'action_param': {
+                'length_of_stay': 1
+            }
         }]}
         # print(url)
         try:
             # res = requests.Request('POST', url, headers=headers, data=json.dumps(data))
             # print(res.prepare().method, res.prepare().url, res.prepare().headers, res.prepare().body)
-            res = requests.post(url, headers=headers, data=json.dumps(data)).content
+            res = requests.post(url, headers=headers, data=json.dumps(data), timeout=5).content
             json_data = json.loads(res)
             if json_data.get('code') == 0:
                 return
@@ -93,7 +96,7 @@ def handle_transform_event(event: ClickEvent, type):
             format(event.callback, event.imei, event.oaid, type, signature)
         # print(url)
         try:
-            resp = requests.get(url, timeout=3)
+            resp = requests.get(url, timeout=5)
             json_data = resp.json()
             if json_data.get('code') == 0:
                 return

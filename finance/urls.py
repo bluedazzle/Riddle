@@ -13,4 +13,6 @@ urlpatterns = [
     url(r'^reward/$', RewardView.as_view()),
     url(r'^rewards/$', RewardListView.as_view()),
     url(r'^lucky_draw/$', LuckyDrawView.as_view()),
+    url(r'^game_cash/$', GameCashView.as_view()),
+    url(r'^game_video/$', GameVideoView.as_view()),
 ]
