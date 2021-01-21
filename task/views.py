@@ -14,11 +14,13 @@ from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.cache import get_daily_task_config_from_cache, set_daily_task_config_to_cache, \
     get_common_task_config_from_cache, set_common_task_config_to_cache, search_task_id_by_cache, \
     set_task_id_to_cache, client_redis_riddle
-from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH, DEFAULT_LOCK_TIMEOUT, SIGN_WATCH_AD_COUNT
+from core.consts import TASK_OK, TASK_DOING, TASK_TYPE_DAILY, TASK_TYPE_COMMON, TASK_FINISH, DEFAULT_LOCK_TIMEOUT, \
+    SIGN_WATCH_AD_COUNT
 from core.dss.Mixin import CheckTokenMixin, JsonResponseMixin
 from task.models import DailyTask, CommonTask
 from account.models import UserSingerCount
 from task.utils import create_task, create_task_history, send_reward, get_singer_id
+
 
 class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     task_config = None
@@ -57,6 +59,7 @@ class DailyTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
             # 更新 sign_token 时保存 user
             self.user.save()
         return self.render_to_response({"daily_task": daily_task_list, 'task_ok_count': task_ok})
+
 
 class CommonTaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
     task_config = None
@@ -175,7 +178,8 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                     if singer_id >= len(task_conf["detail"]):
                         continue
 
-                    task = create_task(self.user, target, task_conf.get("slug"), title, **task_conf["detail"][singer_id])
+                    task = create_task(self.user, target, task_conf.get("slug"), title,
+                                       **task_conf["detail"][singer_id])
 
                     singer_task.append(task)
             else:
@@ -188,7 +192,8 @@ class TaskListView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailVi
                     common_task.append(task)
 
         return self.render_to_response({"daily_task": daily_task, "singer_task": singer_task,
-                                        "common_task": common_task, "daily_reward_amount": self.user.daily_reward_amount})
+                                        "common_task": common_task,
+                                        "daily_reward_amount": self.user.daily_reward_amount})
 
 
 class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
@@ -282,7 +287,14 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
                 raise ValueError('任务未完成')
             self.user.continue_count = 0
             self.user.daily_continue_count_stage += 1
+        elif slug == "DAILY_SIGN":
+            if self.user.daily_sign_in_token < task.get('level'):
+                raise ValueError('任务未完成')
 
+            if task.get('level') == 90:
+                self.user.daily_sign_in = 0
+                self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0] + 1)) \
+                                                + self.user.daily_sign_in_token.split("_")[1]
         reward = task.get('reward')
         reward_type = task.get('reward_type')
         user = send_reward(self.user, reward, reward_type)
@@ -311,7 +323,8 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
             task_id = request.POST.get("task_id")
             slug = request.POST.get('slug')
 
-            if (slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
+            if (
+                    slug == "COMMON_TASK_SINGER_GUSS_RIGHT" or slug == "DAILY_CONTINUE_COUNT") and self.user.wx_open_id == '':
                 self.update_status(StatusCode.ERROR_TASK_WITHDRAW)
                 return self.render_to_response(extra={'error': '请绑定微信后提现'})
 
