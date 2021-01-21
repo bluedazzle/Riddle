@@ -299,8 +299,8 @@ class FinishTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, View):
 
             if task.get('level') == 90:
                 self.user.daily_sign_in = 0
-                self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0] + 1)) \
-                                                + "_" + self.user.daily_sign_in_token.split("_")[1]
+                self.user.daily_sign_in_token = str(int(self.user.daily_sign_in_token.split("_")[0]) + 1) + "_" \
+                                                    + self.user.daily_sign_in_token.split("_")[1]
 
         reward = task.get('reward')
         reward_type = task.get('reward_type')
