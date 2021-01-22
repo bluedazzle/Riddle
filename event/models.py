@@ -11,6 +11,10 @@ class AdEvent(ExportModelOperationsMixin("AdEvent"), BaseModel):
     ad_type = models.CharField(max_length=128)
     channel = models.CharField(default='PANGLE', max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
+    ecpm = models.FloatField(default=0.0)
+    ecpm_precision = models.CharField(max_length=512, default='')
+    ad_source_index = models.IntegerField(default=0)
+    currency = models.CharField(default='', max_length=512)
     user_id = models.IntegerField(default=0)
     app_id = models.CharField(max_length=128, default='default')
 
