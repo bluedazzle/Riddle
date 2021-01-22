@@ -25,4 +25,4 @@ class AdEventForm(forms.ModelForm):
 
     class Meta:
         model = AdEvent
-        fields = ['ad_type', 'channel', 'extra']
+        fields = ['ad_type', 'channel', 'extra', 'ecpm', 'ecpm_precision', 'ad_source_index', 'currency']
