@@ -11,6 +11,7 @@ from operator import itemgetter
 
 from django.core.management.base import BaseCommand
 
+from django.db import connection
 from question.models import Song
 from question.models import Question
 
@@ -121,3 +122,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # self.song_init(u'question/management/commands/songs.xlsx', 100)
         self.question_init(u'question/management/commands/songs.xlsx', 959)
+        cursor = connection.cursor()
+        cursor.execute("update question_question set (singer, song_id) = (select singer, id from question_song \
+        where question_song.resource_url = question_question.resource_url limit 1);")
