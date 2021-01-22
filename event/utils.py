@@ -121,10 +121,12 @@ def handle_activate_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='activate', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='activate', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_ACTIVATE)
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='register', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='register', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_REGISTER)
     return
@@ -142,7 +144,8 @@ def handle_pay_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='pay', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='pay', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_PAY)
     return
@@ -160,7 +163,8 @@ def handle_twice_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='twice', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='twice', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_TWICE)
     return
