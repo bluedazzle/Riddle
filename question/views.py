@@ -75,6 +75,7 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         event.order_id = order_id
         event.user_id = self.user.id
         event.app_id = self.app.app_id
+        event.continuous_right_cnt = self.user.continue_count
         event.save()
 
     def handler_default(self, *args, **kwargs):
