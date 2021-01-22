@@ -38,10 +38,12 @@ def create_task(user: User, target, task_slug: str, title_template, *args, **kwa
     task_slug = task_slug.upper()
     task = {'current_level': target}
     task.update(kwargs)
-    if task_slug == 'COMMON_TASK_SIGN':
-        daily_sign_stage = user.daily_sign_in_token.split("_")[0]
-        unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")),
-                               str(kwargs.get("reward")), daily_sign_stage])
+    if task_slug == 'DAILY_TASK_SIGN':
+        if not user.daily_sign_in_token:
+            user.daily_sign_in_token = create_token()
+        sign_token = user.daily_sign_in_token
+        unique_str = ','.join(
+            [str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(sign_token)])
     elif task_slug.startswith('DAILY_'):
         date = datetime.date.today()
         unique_str = ','.join([str(user.id), task_slug, str(kwargs.get("level")), str(kwargs.get("reward")), str(date)])
@@ -148,6 +150,10 @@ def daily_task_attr_reset(user: User):
         user.daily_coin_exchange = False
         user.daily_lucky_draw = False
         user.daily_withdraw = False
+        if user.daily_sign_in == 7:
+            user.daily_sign_in = 0
+            user.daily_sign_in_token = create_token()
+        user.daily_sign_in += 1
     if user.daily_reward_expire:
         if now_time > user.daily_reward_expire:
             user.daily_reward_draw = False
