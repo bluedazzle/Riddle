@@ -14,10 +14,10 @@ class AdEventForm(forms.ModelForm):
     ad_type = forms.CharField(required=True, max_length=9999, error_messages=cash_messages)
     channel = forms.CharField(required=False, max_length=1000)
     extra = forms.CharField(required=False, max_length=1024)
-    ecpm = forms.FloatField(required=False)
-    ecpm_precision = forms.CharField(required=False, max_length=512)
-    ad_source_index = forms.IntegerField(required=False)
-    currency = forms.CharField(required=False, max_length=512)
+    ecpm = forms.FloatField(required=False, default=0.0)
+    ecpm_precision = forms.CharField(required=False, max_length=128, default='')
+    ad_source_index = forms.IntegerField(required=False, default=0)
+    currency = forms.CharField(required=False, max_length=128, default='')
 
 
     def save(self, commit=False):
