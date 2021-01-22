@@ -15,14 +15,10 @@ class AdEventForm(forms.ModelForm):
     channel = forms.CharField(required=False, max_length=1000)
     extra = forms.CharField(required=False, max_length=1024)
     ecpm = forms.FloatField(required=False)
-    ecpm_precision = forms.CharField(required=False, max_length=512)
-    ad_source_index = forms.IntegerField(required=False)
-    currency = forms.CharField(required=False, max_length=512)
-
 
     def save(self, commit=False):
         return super(AdEventForm, self).save(commit)
 
     class Meta:
         model = AdEvent
-        fields = ['ad_type', 'channel', 'extra', 'ecpm', 'ecpm_precision', 'ad_source_index', 'currency']
+        fields = ['ad_type', 'channel', 'extra', 'ecpm']
