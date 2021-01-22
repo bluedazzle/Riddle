@@ -11,6 +11,7 @@ class AdEvent(ExportModelOperationsMixin("AdEvent"), BaseModel):
     ad_type = models.CharField(max_length=128)
     channel = models.CharField(default='PANGLE', max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
+    ecpm = models.FloatField(default=0.0)
     user_id = models.IntegerField(default=0)
     app_id = models.CharField(max_length=128, default='default')
 
@@ -24,6 +25,7 @@ class ObjectEvent(ExportModelOperationsMixin("ObjectEvent"), BaseModel):
     order_id = models.IntegerField(default=0)
     action = models.CharField(max_length=100)
     extra = models.CharField(max_length=1024, null=True, blank=True)
+    continuous_right_cnt = models.IntegerField(default=0)
     user_id = models.IntegerField(default=0)
     app_id = models.CharField(max_length=128, default='default')
 
