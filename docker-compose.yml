@@ -8,6 +8,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - pgbouncer
 
   nginx:
     image: nginx:latest
@@ -30,6 +31,26 @@ services:
       POSTGRES_USER: ${RIDDLE_USER}
       POSTGRES_DB: ${RIDDLE_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
+
+  pgbouncer:
+    image: pgbouncer/pgbouncer
+    environment:
+      DATABASES_HOST: postgres
+      DATABASES_USER: ${RIDDLE_USER}           # define credentials
+      DATABASES_PASSWORD: ${RIDDLE_PASSWORD}       # define credentials
+      DATABASES_PORT: 5432               # define database
+      DATABASES_DBNAME: ${RIDDLE_NAME}
+      PGBOUNCER_AUTH_TYPE: md5
+      PGBOUNCER_AUTH_FILE: /etc/pgbouncer/userlist.txt
+      PGBOUNCER_ADMIN_USERS: ${RIDDLE_USER}
+    links:
+      - postgres:postgres
+    ports:
+      - 6432:6432                 # PgBouncer port
+    volumes:
+      - ./conf/pgbouncer:/etc/pgbouncer
+    depends_on:
+      - postgres
 
   redis:
     restart: always
