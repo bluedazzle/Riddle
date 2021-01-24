@@ -107,7 +107,7 @@ DATABASES = {
         'USER': conf.riddle_user,
         'PASSWORD': conf.riddle_password,
         'HOST': conf.riddle_host,
-        'PORT': 5432,
+        'PORT': conf.riddle_port,
         'CONN_MAX_AGE': 60,
     }
 }
