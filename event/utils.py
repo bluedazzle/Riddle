@@ -54,7 +54,7 @@ def handle_transform_event(event: ClickEvent, type):
             format(event.callback, type + 1, time, pay_amount)
         # print(url)
         try:
-            resp = requests.get(url, timeout=3)
+            resp = requests.get(url, timeout=5)
             json_data = resp.json()
             if json_data.get('result') == 1:
                 return
@@ -74,13 +74,16 @@ def handle_transform_event(event: ClickEvent, type):
                 'hash_android_id': event.android_id,
                 'oaid': event.oaid
             },
-            'action_type': action_type
+            'action_type': action_type,
+            'action_param': {
+                'length_of_stay': 1
+            }
         }]}
         # print(url)
         try:
             # res = requests.Request('POST', url, headers=headers, data=json.dumps(data))
             # print(res.prepare().method, res.prepare().url, res.prepare().headers, res.prepare().body)
-            res = requests.post(url, headers=headers, data=json.dumps(data)).content
+            res = requests.post(url, headers=headers, data=json.dumps(data), timeout=5).content
             json_data = json.loads(res)
             if json_data.get('code') == 0:
                 return
@@ -93,7 +96,7 @@ def handle_transform_event(event: ClickEvent, type):
             format(event.callback, event.imei, event.oaid, type, signature)
         # print(url)
         try:
-            resp = requests.get(url, timeout=3)
+            resp = requests.get(url, timeout=5)
             json_data = resp.json()
             if json_data.get('code') == 0:
                 return
@@ -118,10 +121,12 @@ def handle_activate_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='activate', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='activate', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_ACTIVATE)
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='register', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='register', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_REGISTER)
     return
@@ -139,7 +144,8 @@ def handle_pay_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='pay', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='pay', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_PAY)
     return
@@ -157,7 +163,8 @@ def handle_twice_event(user: User):
         return
     if objs[0].channel != 'default' and objs[0].channel != user.channel:
         return
-    obj = model(transform=objs[0].company, channel=objs[0].channel, action='twice', user_id=user.id, name=user.name)
+    obj = model(transform=objs[0].company, channel=objs[0].channel, aid=objs[0].aid, aid_name=objs[0].aid_name,
+                action='twice', user_id=user.id, name=user.name)
     obj.save()
     handle_transform_event(objs[0], EVENT_TRANSFORM_TWICE)
     return

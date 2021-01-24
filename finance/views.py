@@ -30,7 +30,7 @@ from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonR
 from core.utils import get_global_conf
 from core.wx import send_money_by_open_id
 from finance.forms import CashRecordForm, ExchangeRecordForm
-from finance.models import CashRecord, ExchangeRecord, RedPacket
+from finance.models import CashRecord, ExchangeRecord, RedPacket, GameCashRecord
 from task.utils import update_task_attr
 
 
@@ -446,3 +446,67 @@ class LuckyDrawView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseM
         update_task_attr(self.user, 'daily_lucky_draw')
         rp = self.ab_test_handle('2003')
         return self.render_to_response({'reward': rp})
+
+
+class GameCashView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = GameCashRecord
+    http_method_names = ['get']
+    conf = {}
+
+    def default_game(self, *args, **kwargs):
+        cash = int(
+            max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
+                    20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
+        return cash
+
+    @transaction.atomic()
+    def get(self, request, *args, **kwargs):
+        game_name = request.GET.get('game_name', 'default')
+        percentage = int(request.GET.get('percentage', '100'))
+        grant = request.GET.get('grant', '0')
+        if grant != '1':
+            return self.render_to_response(
+                {'success': False, 'cash': 0})
+
+        self.conf = get_global_conf()
+        round_cash = self.conf.get('round_cash', 30000)
+        round_count = self.conf.get('round_count', 1000)
+        low_range = self.conf.get('low_range', 0.8)
+        high_range = self.conf.get('high_range', 1.2)
+        const_num = self.conf.get('const_num', 0)
+
+        rand_num = random.random() * (high_range - low_range) + low_range
+        cash = self.default_game(percentage=percentage, round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        client_redis_riddle.set(str(self.user.id) + 'cash', cash)
+
+        gc = GameCashRecord()
+        gc.game_name = game_name
+        gc.percentage = percentage
+        gc.cash = cash
+        gc.belong = self.user
+        gc.save()
+
+        self.user.cash += cash
+        self.user.save()
+        return self.render_to_response(
+            {'success': True, 'cash': cash})
+
+
+class GameVideoView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, DetailView):
+    model = GameCashRecord
+
+    def get(self, request, *args, **kwargs):
+        video = request.GET.get('watch_video', '0')
+        if video != '1':
+            return self.render_to_response()
+        cash = client_redis_riddle.get(str(self.user.id) + 'cash')
+        if cash:
+            try:
+                cash = int(cash)
+                self.user.cash += cash
+                client_redis_riddle.delete(str(self.user.id) + 'cash')
+            except Exception as e:
+                logging.exception(e)
+        self.user.save()
+
+        return self.render_to_response({'success': True, 'cash': cash})
