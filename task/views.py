@@ -388,7 +388,7 @@ class DailySignTaskView(CheckTokenMixin, StatusWrapMixin, JsonResponseMixin, Det
                     task = create_task(self.user, target, task_conf.get("slug"), title, **itm)
                     daily_task.append(task)
 
-        return self.render_to_response({"daily_sign_in": self.user.daily_sign_in, "daily_task": daily_task,
+        return self.render_to_response({"daily_sign_in": self.user.daily_sign_in, "sign_task": daily_task,
                                         "daily_sign_status": daily_sign_status})
 
 
