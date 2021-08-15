@@ -21,7 +21,7 @@ from baseconf.models import PageConf
 from core.Mixin.StatusWrapMixin import StatusWrapMixin, StatusCode
 from core.consts import DEFAULT_REWARD_COUNT, DEFAULT_SONGS_COUNT, DEFAULT_SONGS_THRESHOLD, DEFAULT_SONGS_TWO_COUNT, \
     DEFAULT_SONGS_TWO_THRESHOLD, DEFAULT_SONGS_THREE_COUNT, DEFAULT_SONGS_THREE_THRESHOLD, \
-    NEW_VERSION_REWARD_COUNT, DEFAULT_QUESTION_NUMBER, DEFAULT_LOCK_TIMEOUT
+    NEW_VERSION_REWARD_COUNT, DEFAULT_QUESTION_NUMBER, DEFAULT_LOCK_TIMEOUT, DEFAULT_SONGS_TWO_COUNT_EXP
 from core.dss.Mixin import MultipleJsonResponseMixin, CheckTokenMixin, FormJsonResponseMixin, JsonResponseMixin
 from core.utils import get_global_conf
 from core.cache import client_redis_riddle, REWARD_KEY
@@ -79,16 +79,36 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         event.save()
 
     def handler_default(self, *args, **kwargs):
+        video = False
+        if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
+            video = True
+        return video
+
+    def get_cash(self, *args, **kwargs):
         cash = int(
             max((kwargs.get('round_cash') - self.user.cash) / (kwargs.get('round_count') - self.user.current_step) * (
-                20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
+                    20 - 19 * self.user.current_step / kwargs.get('round_count')) * kwargs.get('rand_num'), 1))
         return cash
 
     def handler_b(self, *args, **kwargs):
-        cash = int(max((29800 - self.user.cash) / (1000 - self.user.current_step) * (
-            17 - 16 * self.user.current_step / 1000) * kwargs.get('rand_num'), 1)) + kwargs.get('const_num')
-
-        return cash
+        video = False
+        if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_TWO_COUNT_EXP == 0:
+            video = True
+        elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
+                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
+            video = True
+        return video
 
     def new_version_handler(self):
         cash_list = [1888, 243, 221, 198, 212, 176, 142, 158, 129, 105]
@@ -122,7 +142,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         elif self.user.current_level == 16:
             handle_pay_event(self.user)
         if self.user.twice_tag == False and \
-                (timezone.localtime(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(minutes=60))).day == timezone.localtime().day:
+                (timezone.localtime(self.user.create_time + datetime.timedelta(days=1) + datetime.timedelta(
+                    minutes=60))).day == timezone.localtime().day:
             self.user.twice_tag = True
             self.user.save()
             handle_twice_event(self.user)
@@ -154,23 +175,13 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
             return self.render_to_response()
 
         rand_num = random.random() * (high_range - low_range) + low_range
-        cash = self.ab_test_handle(slug='2981716', round_cash=round_cash, round_count=round_count, rand_num=rand_num)
+        cash = self.get_cash(round_cash=round_cash, round_count=round_count, rand_num=rand_num)
         if version >= 20112400 and version <= 20113099:
             cash = self.new_version_handler()
-
         client_redis_riddle.set(str(self.user.id) + 'cash', cash)
         self.user = daily_task_attr_reset(self.user)
-        video = False
         self.user.songs_count += 1
-        if self.user.current_level > DEFAULT_SONGS_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_TWO_THRESHOLD and \
-                                self.user.songs_count % DEFAULT_SONGS_COUNT == 0:
-            video = True
-        elif self.user.current_level > DEFAULT_SONGS_TWO_THRESHOLD and self.user.current_level <= DEFAULT_SONGS_THREE_THRESHOLD and \
-                                self.user.songs_count % DEFAULT_SONGS_TWO_COUNT == 0:
-            video = True
-        elif self.user.current_level > DEFAULT_SONGS_THREE_THRESHOLD and \
-                                self.user.songs_count % DEFAULT_SONGS_THREE_COUNT == 0:
-            video = True
+        video = self.ab_test_handle('VIDEOCOUNT')
         self.transform_event_handler()
         if obj.right_answer_id != aid and self.user.current_level != 1:
             self.user.wrong_count += 1
@@ -190,7 +201,8 @@ class AnswerView(CheckTokenMixin, ABTestMixin, StatusWrapMixin, JsonResponseMixi
         singer_id = get_singer_id(obj.singer)
 
         if singer_id != -1:
-            UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(right_count=F('right_count') + 1)
+            UserSingerCount.objects.filter(user_id=self.user.id, singer_id=singer_id).update(
+                right_count=F('right_count') + 1)
 
         if self.user.current_step + 1 == round_count:
             self.user.current_step = 0
